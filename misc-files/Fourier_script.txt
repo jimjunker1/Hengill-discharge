@@ -1,0 +1,85 @@
+#To quantify periodic, sotchastic, and catastrophic environmental variation from time-series data.
+#This is developed from Sabo and Post(2008) incorporating their fourier analysis approach
+#This takes a database with hourly mean discharge of all streams discharge combined for the entire time series i. 1st column; Dates, 2nd; Times, 3rd; first stream,...
+periodic<-function(DATA){
+#write code to load in latticeExtra pck, chron pck,
+require(latticeExtra)
+require(chron)
+
+#convert dates to recognized dates
+new.date<-as.Date(DATA$Date, "%d-%m-%y")
+mid.date<-format(new.date, "%d-%m-%Y")
+#Creates ordinal dates
+ord.date<-format(new.date,"%j")
+
+#convert times to recognized times
+ord.time<-chron(times=DATA$Time)
+ts<-paste(new.date, DATA$Time)
+ts.fin<-as.POSIXct(ts)
+#create ordinal hours 
+
+ord.hour<-24*(as.numeric(ord.date)-1)+ord.time
+
+#Take the log10 of the discharge data
+log.disc<-as.data.frame(log10(DATA[,3:length(colnames(DATA))]))
+
+#mean of log10 discharge
+mean.disc<-mean(log.disc, na.rm=T)
+
+#normalize this mean based on the mean of the entire series
+norm.mean<-as.data.frame(Map("-",log.disc, mean.disc))
+
+#create a new data frame with recognized dates and normalized, log-transformed data
+norm.data<-as.data.frame(cbind(ord.hour, norm.mean))
+
+#norm.data<-as.data.frame(cbind(ts.fin,norm.mean))
+#plot all of the logged, normalized dishcarge series individually on the same page
+#par(mfrow=c(length(colnames(norm.data)),1))
+
+#this creates a moving average of width=7, from both sides, not relevant for time-series data
+smoothed<-simpleSmoothTs(norm.data, width=12, c=1, sides=2)
+plotstreams<-function(ID){
+
+#This code uses the raw data
+#x<-norm.data[,colnames(norm.data) == ID]
+
+#This code uses the smoothed data
+#smoothed is the smoothed, transformed, normalized data
+x<-smoothed[,colnames(smoothed) == ID]
+
+#This code plots the data based on an ordinal time point to explore seasonal patterns across years.
+plot(norm.data$ord.hour,x, ylim=c(-0.6,0.6), pch=20, cex=0.6, ylab="Normalized Depth (m)", xaxt="n", xlab=paste(ID))
+months<-c("Jan","","Mar","","May","", "Jul","","Sep","","Nov","")
+ticks<-c(365,1095,1825,2555,3285,4015,4745,5475,6205,6935,7665,8395)
+axis(1, at=ticks, labels=months)
+
+#This code plots the smoothed data in a continuous time-series.
+#plot(norm.data$ts.fin,smoothed$ID, pch=20, cex=0.6, xlab="Date", ylab="normalized log10 Q (L/s)", ylim=c(-0.6, 0.6), main="ST 8");abline(h=0, col="red", lwd=2)
+
+abline(h=0, col="red", lwd=2)
+}
+
+streams<-colnames(norm.data[2:length(colnames(norm.data))])
+for (i in streams){
+plotstreams(i)
+dev.new()
+}}
+
+
+#Extracting annual High (Ah) and low (Al)observations from the smoothed time series
+yr<-cut(smoothed, "year")
+Ah<-tapply(smoothed, yr, max, na.rm=T)
+Al<-tapply(smoothed, yr, min, na.rm=T)
+
+
+#code for plotting the 
+
+#smooth this by taking a 24 hour moving average of hourly measurements
+smooth.mean<-as.data.frame(cbind(row.names(smoothed), smoothed[1]))
+row.names(smooth.mean)<-NULL
+colnames(smoothed.mean)<-c("Date","Time","Discharge")
+
+#calculating monthly highs and lows from this data and plotting them across streams
+#finding seasonal/monthly highs and lows
+
+#which(diff(sign(df))!=0)---use this code to find sign change in the series

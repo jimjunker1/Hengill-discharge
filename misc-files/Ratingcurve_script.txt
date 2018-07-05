@@ -1,0 +1,19 @@
+#To build rating curves for stream discharge using pressure gauges and salt slugs.
+
+#set working directory and load in the csv file with the discharge and 
+#corresponding stream height data
+setwd("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Stream Discharge")
+Q<-read.csv(file="q relationship data.csv",T)
+
+#convert the date/time to recognizeable formats
+Q.date=as.Date(Q$Qdate, "%m/%d/%y")
+Q.time=chron(times=Q$Qtime)
+Qts=paste(Q.date, Q$Qtime)
+Qts.fin<-as.POSIXct(Qts)
+
+
+
+
+
+
+

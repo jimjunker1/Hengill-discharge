@@ -1,5 +1,3 @@
-
-
 ##load libraries
 library(ggplot2)
 library(chron)
@@ -18,7 +16,7 @@ theme_set(theme_bw(20))
 datetime <- read.csv("./stream-data/All_DateTime.csv")
 Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 LWAD <- read.csv("./stream-data/LWADS_summary.csv")
-Q_all <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Stream Discharge/All Q/Q_all.csv")
+Q_all <- read.csv("./stream-data/Q_all.csv")
 
 #convert times to posix objects
 datetime$Pd <- as.POSIXct(paste(datetime$Date, datetime$Time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
@@ -44,14 +42,13 @@ Q <- cbind(Q, Q.mod)
 Q <- Q[,c(2,4,8,15,17)]
 colnames(Q) <- c("Date", "Stream", "tt.s", "day", "Q.mod")
 
-
 ##converting from wide to long all stream Q data
 colnames(Q_all) <- c("Date", "Time", "st1", "st5", "st6", "st8", "st9", 
  "st11L", "st13", "st14", "st17", "hver", "Pd")
 
 Q_all <- melt(Q_all, id.vars = c("Date", "Time", "Pd"))
 
-	##must aggregate Q_all by day to allow to match with LWAD measures
+##must aggregate Q_all by day to allow to match with LWAD measures
 
 colnames(Q_all) <- c("Date", "Time", "Pd", "Stream", "Discharge")
 Q_all_ag <- aggregate(Q_all["Discharge"], by = list(day = cut(Q_all$Pd, breaks = "day"),Stream = Q_all$Stream), mean, na.rm = T)
@@ -62,9 +59,9 @@ colnames(Q_all_ag) <- c("Stream", "Discharge", "day")
 
 Q_tt <- merge(Q, Q_all_ag, by = c("Stream", "day"))
 
-	#check to see how the measured Q and predicted Q matchup across all streams
+#check to see how the measured Q and predicted Q matchup across all streams
 
-plot(Q_tt$Q.mod, Q_tt$Discharge)
+plot(log10(Q_tt$Q.mod), log10(Q_tt$Discharge))
 abline(0,1)
 
 	#Now merge in all the LWAD data with discharge data 
@@ -121,7 +118,7 @@ Q_width.plot <- ggplot(Q_LWAD.fin, aes(x = log(Discharge), y = log(width))) + ge
 
 Q_width.plot + aes(colour = Stream)
 
-Q_width.plot + aes(colour = Stream) + geom_smooth(aes(group = Stream))
+Q_width.plot + aes(colour = Stream) + geom_smooth()
 dev.new()
 	###Travel time####
 Q_tt.plot <- ggplot(Q_LWAD.fin, aes(x = log(Discharge), y = tt.s)) + geom_point(size = 2.5); Q_tt.plot

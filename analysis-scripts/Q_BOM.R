@@ -1,4 +1,4 @@
-setwd("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Depth-Discharge")
+#Script to create estimates of Q, CV, Q.ct, power, etc for BOM chapter 
 
 ##load libraries
 library(ggplot2)
@@ -13,7 +13,7 @@ library(corrplot)
 library(reshape2)
 theme_set(theme_bw(20))
 
-Q_all <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Stream Discharge/All Q/Q_all.csv")
+Q_all <- read.csv("./stream-data/Q_all.csv")
 st_temps <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/BOMs/BOM final/FinalRfiles/stream_temps.csv",T)
 ####  Isolate all Q between Oct-11 and Aug-12 ####
 

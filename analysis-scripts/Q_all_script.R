@@ -19,25 +19,23 @@ library(corrplot)
 library(lubridate)
 theme_set(theme_bw(20))
 
-setwd("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Stream Discharge/All Q")
-
 #########################load data from all streams###############################
 
-datetime <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/All_DateTime.csv")
-Q <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/Q_data_summary_working.csv")
-presL <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736059_7LO.csv")
-presH <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736163_7HI_noNAs.csv")
-pres1 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736056_ST1b.csv")
-pres5 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736061_ST5.csv")
-pres6 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736057_ST6b.csv")
-pres8 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736058_ST8.csv")
-pres9 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736054_ST9.csv")
-pres11D <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736055_ST11L.csv")
-pres11U <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/2451129_ST11U.csv")
-pres13 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736053_ST13.csv")
-pres14 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736060_ST14.csv")
-pres17 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736062_ST17.csv")
-presHver <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/2451126_Hver.csv")
+datetime <- read.csv("./stream-data/All_DateTime.csv")
+Q <- read.csv("./stream-data/Q_data_summary_working.csv")
+presL <- read.csv("./stream-data/9736059_7LO.csv")
+presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
+pres1 <- read.csv("./stream-data/9736056_ST1b.csv")
+pres5 <- read.csv("./stream-data/9736061_ST5.csv")
+pres6 <- read.csv("./stream-data/9736057_ST6b.csv")
+pres8 <- read.csv("./stream-data/9736058_ST8.csv")
+pres9 <- read.csv("./stream-data/9736054_ST9.csv")
+pres11D <- read.csv("./stream-data/9736055_ST11L.csv")
+pres11U <- read.csv("./stream-data/2451129_ST11U.csv")
+pres13 <- read.csv("./stream-data/9736053_ST13.csv")
+pres14 <- read.csv("./stream-data/9736060_ST14.csv")
+pres17 <- read.csv("./stream-data/9736062_ST17.csv")
+presHver <- read.csv("./stream-data/2451126_Hver.csv")
 
 pres1 <- pres1[,1:4]
 #####
@@ -426,7 +424,6 @@ Q17 <- Q17[!is.na(Q17$Q.mod),]
 Q17 <- Q17[order(Q17$Pd),]
 Q17z <- with(Q17, zoo(Q.mod, Pd))
 
-
 f <- function(u) which.min(abs(as.numeric(index(d17)) - as.numeric(u)))
 dx <- sapply(index(Q11Uz), f)
 QP <- cbind(Q11Uz, d17 = coredata(d17) [dx])
@@ -527,12 +524,9 @@ depths$Q14 <- exp(predict(sm_rating14, depths))
 depths$Q17 <- exp(predict(sm_rating17, depths))
 depths$QHVER <- exp(predict(sm_ratingHver, depths))
 
-                  
 
-write.csv(Q_all, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Stream Discharge/All Q/Q_all_fin.csv")
-	
+write.csv(Q_all, file = "./output-files/Q_all_fin.csv")
 
-		
 	#adding Q predicted estimates to Qw file	
 st7_Qw2 <- read.csv("~/Dropbox/JMH_dropbox/stephanson2/Projects/Cross Postdoc/Data/NaCl & nutrient slugs/rating curves/summary_data/st7_Qw2.csv")
 

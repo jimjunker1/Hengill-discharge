@@ -1,4 +1,4 @@
-﻿#Purpose: To create pressure-discharge rating curves across gradient streams
+#Purpose: To create pressure-discharge rating curves across gradient streams
 #Original code for st7 by Jim Hood
 #Modified by Jim Junker. See log
 
@@ -15,17 +15,16 @@ library(GGally)
 library(plyr)
 library(data.table)
 library(corrplot)
+library(MuMIn)
 theme_set(theme_bw(20))
 
-setwd("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/")
-
 #load data
-datetime <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/All_DateTime.csv")
-Q <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/Q_data_summary_working.csv")
-presL <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736059_7LO.csv")
-presH <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736163_7HI_noNAs.csv")
-pres11U <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/2451129_ST11U.csv")
-pres17 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736062_ST17.csv")
+datetime <- read.csv("./stream-data/All_DateTime.csv")
+Q <- read.csv("./stream-data/Q_data_summary_working.csv")
+presL <- read.csv("./stream-data/9736059_7LO.csv")
+presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
+pres11U <- read.csv("./stream-data/2451129_ST11U.csv")
+pres17 <- read.csv("./stream-data/9736062_ST17.csv")
 
 #Combine the upper and lower logger data if NA on Lower logger
 
@@ -224,8 +223,9 @@ Q11U_full <- cbind(Q11U_full, year11U)
  #ST11U
 depths <- merge(presLhr[,2:4], presHhr[,2:4], by = "time", all = TRUE)
 depths <- merge(depths, pres11Uhr[,2:4], by = "time", all = T)
+depths = merge(depths, pres17hr[,2:4], by = 'time', all = T)
 depths <- depths[!as.numeric(format(depths$time, "%y")) == 1,]
-names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st11U_depthm", "st11U_tempC")
+names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st11U_depthm", "st11U_tempC", "st17_depthm", "st17_tempC")
 
 
 # write.csv(depths, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Landscape_all.csv")
@@ -235,28 +235,34 @@ names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st11U_d
 	ggplot(depths, aes(x = L_depthm, y = st11U_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = H_depthm, y = st11U_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = st11U_tempC, y = st11U_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = L_tempC, y = st11U_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		ylim(0,0.5)
+
+ggplot(depths, aes(x = st17_depthm, y = st11U_depthm))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  geom_abline(intercept = 0, slope = 1)+
+  ylim(0,0.5)
 
 #multiple regression
  #season <- S = June - Sept; NS = other months
@@ -267,7 +273,7 @@ ggplot(depths, aes(x = L_tempC, y = st11U_depthm))+
 	ggplot(Q11U_full, aes(x = temp_US_m, y = temp_DS_m))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,30)+
 		ylim(0,30)
 		
@@ -275,7 +281,7 @@ ggplot(depths, aes(x = L_tempC, y = st11U_depthm))+
 	ggplot(Q11U_full, aes(x = temp_US_m, y = temp_11U))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(-10,30)+
 		ylim(-10,40)
 		
@@ -283,7 +289,7 @@ ggplot(depths, aes(x = L_tempC, y = st11U_depthm))+
 	ggplot(Q11U_full, aes(y = temp_DS_m, x = temp_11U))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,30)+
 		ylim(0,30)
 		
@@ -291,17 +297,16 @@ ggplot(depths, aes(x = L_tempC, y = st11U_depthm))+
 	ggplot(Q11U_full, aes(y = Q11U_full$Q.mod, x = Q11U_full$d11U))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0.2, 0.3)+
 		ylim(0,50)
 
  
 #model selection to determine the best model
 	#Q <- Q[2:34,]
-	library(MuMIn)
 
-	Q11U_full_mod <- Q11U_full[!is.na(Q11U_full$d17),]
-	Q11U_gm_mod <- lm(log(Q.mod) ~ log(d17), Q11U_full_mod, na.action = "na.fail")
+	Q11U_full_mod <- Q11U_full[!is.na(Q11U_full$d11U),]
+	Q11U_gm_mod <- lm(log(Q.mod) ~ log(d11U), Q11U_full_mod, na.action = "na.fail")
 	Q11U_MS_mod <- dredge(Q11U_gm_mod, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 
 	Q11U_gm <- lm(log(Q.mod) ~ log(d11U) + temp_11U + log(dL) + temp_L + temp_H + as.factor(summer11U), Q11U_full_mod, na.action = "na.fail")
@@ -322,7 +327,7 @@ ggplot(depths, aes(x = L_tempC, y = st11U_depthm))+
 	
 	#T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
 
-sm_rating11U <- lm(log(Q.mod) ~ log(d17), Q11U_full_mod); summary(sm_rating11U)
+sm_rating11U <- lm(log(Q.mod) ~ log(d11U), Q11U_full_mod); summary(sm_rating11U)
 
 				
 # # 				
@@ -381,15 +386,15 @@ sm_rating11U <- lm(log(Q.mod) ~ log(d17), Q11U_full_mod); summary(sm_rating11U)
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q11U_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
-		ylab(expression(paste("Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
+		ylab(expression(paste("Q (L ", s^1,")")))
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
 		
 	ggplot(depths_m, aes(x = time, y = Q_mr)) +
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q11U_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
 		ylab(expression(paste(log[10]," Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
 		scale_y_log10()
 	
 	#export data

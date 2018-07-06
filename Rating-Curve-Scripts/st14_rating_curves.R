@@ -18,14 +18,12 @@ library(data.table)
 library(corrplot)
 theme_set(theme_bw(20))
 
-setwd("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/")
-
 #load data
-datetime <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/All_DateTime.csv")
-Q <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/Q_data_summary_working.csv")
-presL <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736059_7LO.csv")
-presH <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736163_7HI_noNAs.csv")
-pres14 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736060_ST14.csv")
+datetime <- read.csv("./stream-data/All_DateTime.csv")
+Q <- read.csv("./stream-data/Q_data_summary_working.csv")
+presL <- read.csv("./stream-data/9736059_7LO.csv")
+presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
+pres14 <- read.csv("./stream-data/9736060_ST14.csv")
 
 #Combine the upper and lower logger data if NA on Lower logger
 
@@ -331,7 +329,7 @@ sm_rating14 <- lm(log(Q.mod) ~ log(d14) + temp_14 + year14, Q14_full); summary(s
 				# (Intercept) -3.092e-16  1.031e-01    0.00        1    
 				# fitted       1.000e+00  5.892e-02   16.97   <2e-16 ***
 				# ---
-				# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+				# Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
 				
 				# Residual standard error: 0.2733 on 31 degrees of freedom
 				# Multiple R-squared:  0.9028,	Adjusted R-squared:  0.8997 

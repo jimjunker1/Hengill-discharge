@@ -18,16 +18,14 @@ library(corrplot)
 library(dplyr)
 theme_set(theme_bw(20))
 
-setwd("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/")
-
 #load data
-datetime <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/All_DateTime.csv")
-Q <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/Q_data_summary_working.csv")
-presL <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736059_7LO.csv")
-presH <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736163_7HI_noNAs.csv")
-pres8 <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/9736058_ST8.csv")
-light <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/lux_par_final.csv")
-lightmod <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Do Not Touch/Light-est_full.csv")
+datetime <- read.csv("./stream-data/All_DateTime.csv")
+Q <- read.csv("./stream-data/Q_data_summary_working.csv")
+presL <- read.csv("./stream-data/9736059_7LO.csv")
+presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
+pres8 <- read.csv("./stream-data/9736058_ST8.csv")
+light <- read.csv("./stream-data/lux_par_final.csv")
+lightmod <- read.csv("./stream-data/Light-est_full.csv")
 
 #Combine the upper and lower logger data if NA on Lower logger
 

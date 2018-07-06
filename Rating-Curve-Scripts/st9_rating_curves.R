@@ -25,8 +25,8 @@ Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 presL <- read.csv("./stream-data/9736059_7LO.csv")
 presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
 pres9 <- read.csv("./stream-data/9736054_ST9.csv")
-light <- read.csv("./stream-data/lux_par_final.csv")
-lightmod <- read.csv("./stream-data/Light-est_full.csv")
+#light <- read.csv("./stream-data/lux_par_final.csv")
+#lightmod <- read.csv("./stream-data/Light-est_full.csv")
 
 #Combine the upper and lower logger data if NA on Lower logger
 
@@ -52,8 +52,8 @@ Q <- Q[!is.na(Q$Pd),]
 presL$Pd <- as.POSIXct(paste(presL$Date, presL$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 presH$Pd <- as.POSIXct(paste(presH$Date, presH$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres9$Pd <- as.POSIXct(paste(pres9$Date, pres9$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
-light$Pd <- as.POSIXct(paste(light$date, light$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
-lightmod$Pd <- as.POSIXct(paste(lightmod$date, lightmod$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
+#light$Pd <- as.POSIXct(paste(light$date, light$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
+#lightmod$Pd <- as.POSIXct(paste(lightmod$date, lightmod$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
 
 
 #merging the full datetime file for 15min intervals from 7/20/2010 18:00:00 to Oct14
@@ -66,11 +66,11 @@ presL <- do.call(rbind.fill, mylist)
 mylist <- list(presH, datetime)
 presH <- do.call(rbind.fill, mylist)
 
-mylist <- list(light, datetime)
-light <- do.call(rbind.fill, mylist)
+#mylist <- list(light, datetime)
+#light <- do.call(rbind.fill, mylist)
 
-mylist <- list(lightmod, datetime)
-lightmod <- do.call(rbind.fill, mylist)
+#mylist <- list(lightmod, datetime)
+#lightmod <- do.call(rbind.fill, mylist)
 
 
 #pres1 <- pres1[,2:6] #cleaning up row# column
@@ -80,14 +80,14 @@ lightmod <- do.call(rbind.fill, mylist)
 	presLhr_d <- data.frame(presL$Pd, presL$Depthm, presL$TempC)
 	presHhr_d <- data.frame(presH$Pd, presH$Depthm, presH$TempC)
 	pres9hr_d <- data.frame(pres9$Pd, pres9$Depthm, pres9$TempC)
-	lighthr_d <- data.frame(light$Pd, light$PAR_H)
-	lightmodhr_d <- data.frame(lightmod$Pd, lightmod$light)
+	#lighthr_d <- data.frame(light$Pd, light$PAR_H)
+	#lightmodhr_d <- data.frame(lightmod$Pd, lightmod$light)
 	
 	names(presLhr_d) <- c("time", "depthm", "tempC")
 	names(presHhr_d) <- c("time", "depthm", "tempC")
 	names(pres9hr_d) <- c("time", "depthm", "tempC")
-	names(lighthr_d) <- c("time", "light")
-	names(lightmodhr_d) <- c("time", "light.est")
+	#names(lighthr_d) <- c("time", "light")
+	#names(lightmodhr_d) <- c("time", "light.est")
 
 ##First merge all the depth data by time
 	
@@ -103,35 +103,35 @@ lightmod <- do.call(rbind.fill, mylist)
 					list(hour = cut(pres9hr_d$time, breaks = "hour")),
 					mean, na.rm = TRUE)
 
-	lighthr <- aggregate(lighthr_d["light"],
-					list(hour = cut(lighthr_d$time, breaks = "hour")),
-					mean, na.rm = TRUE)
+	#lighthr <- aggregate(lighthr_d["light"],
+	#				list(hour = cut(lighthr_d$time, breaks = "hour")),
+	#				mean, na.rm = TRUE)
 
-	lightmodhr <- aggregate(lightmodhr_d["light.est"], list(hour = cut(lightmodhr_d$time, breaks = "hour")),
-					sum, na.rm= TRUE)
-	
+	#lightmodhr <- aggregate(lightmodhr_d["light.est"], list(hour = cut(lightmodhr_d$time, breaks = "hour")),
+	#				sum, na.rm= TRUE)
+	#
 
 #convert times to posix object
 
 	presLhr$time <- as.POSIXct(presLhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	presHhr$time <- as.POSIXct(presHhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	pres9hr$time <- as.POSIXct(pres9hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-	lighthr$time <- as.POSIXct(lighthr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-	lightmodhr$time <- as.POSIXct(lightmodhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
+	#lighthr$time <- as.POSIXct(lighthr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
+	#lightmodhr$time <- as.POSIXct(lightmodhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 
 #creating a moving average within the yearl
 
 ##make summer light cumulative variable for each season
-light_year <- as.numeric(format(lightmodhr$time, "%Y"))
-lightmodhr <- cbind(lightmodhr, light_year)
+#light_year <- as.numeric(format(lightmodhr$time, "%Y"))
+#lightmodhr <- cbind(lightmodhr, light_year)
 
-lightmodhr <- lightmodhr %>% group_by(light_year) %>% mutate(cum_light = cumsum(light.est))
+#lightmodhr <- lightmodhr %>% group_by(light_year) %>% mutate(cum_light = cumsum(light.est))
 
-lightmodhr <- ungroup(lightmodhr)
+#lightmodhr <- ungroup(lightmodhr)
 
-lightmodhr <- data.frame(lightmodhr)
+#lightmodhr <- data.frame(lightmodhr)
 
-write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/lightmodhr.csv")
+#write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/lightmodhr.csv")
 
 # # RUNNING ONE TIME, THEN EXPORTING TO GET PT TEMPS
 # #get temp at times of slugs
@@ -140,8 +140,8 @@ write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch
 		 temp_L <- with(presLhr, zoo(tempC, time))
 		 temp_H <- with(presHhr, zoo(tempC, time))
 		 temp_9 <- with(pres9hr, zoo(tempC, time))
-		 light <- with(lighthr, zoo(light, time))
-		 lightmod <- with(lightmodhr, zoo(cum_light, time))
+		 #light <- with(lighthr, zoo(light, time))
+		 #lightmod <- with(lightmodhr, zoo(cum_light, time))
 
 		 d9 <- with(pres9hr, zoo(depthm, time))
 		 dL <- with(presLhr, zoo(depthm, time))
@@ -220,15 +220,15 @@ Q_cor_df <- data.frame(Q_cor)
 		QP <- cbind(Q9_full, dH = coredata(dH) [dx])
 		Q9_full <- data.frame(QP)
 	
-		f <- function(u) which.min(abs(as.numeric(index(light)) - as.numeric(u)))
-		dx <- sapply(index(Q9z), f)
-		QP <- cbind(Q9_full, light = coredata(light) [dx])
-		Q9_full <- data.frame(QP)    
+		#f <- function(u) which.min(abs(as.numeric(index(light)) - as.numeric(u)))
+		#dx <- sapply(index(Q9z), f)
+		#QP <- cbind(Q9_full, light = coredata(light) [dx])
+		#Q9_full <- data.frame(QP)    
 
-		f <- function(u) which.min(abs(as.numeric(index(d9)) - as.numeric(u)))
-		dx <- sapply(index(Q9z), f)
-		QP <- cbind(Q9_full, cum.light = coredata(lightmod) [dx])
-		Q9_full <- data.frame(QP) 
+		#f <- function(u) which.min(abs(as.numeric(index(d9)) - as.numeric(u)))
+		#dx <- sapply(index(Q9z), f)
+		#QP <- cbind(Q9_full, cum.light = coredata(lightmod) [dx])
+		#Q9_full <- data.frame(QP) 
 
 #adding in a season variable
 		
@@ -239,7 +239,7 @@ year9 <- as.numeric(format(Q9_full$Pd, "%y"))
 Q9_full <- cbind( Q9_full, year9)
 
 
-					# #just check to make sure files are matched up right
+# #just check to make sure files are matched up right
 				 ggplot(Qw9, aes(x = Q.mod, y = Q_DS)) + geom_point()
 				 #ggplot(Qw1, aes(x = Q.mod, y = Q_DS)) + geom_point()
 	# #Export
@@ -254,25 +254,25 @@ depths <- merge(depths, pres9hr[,2:4], by = "time", all = T)
 depths <- depths[!as.numeric(format(depths$time, "%y")) == 1,]
 names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st9_depthm", "st9_tempC")
 
-
-
-
-
 # write.csv(depths, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Landscape_all.csv")
+
+#Find if and when NAs exist
+tail(depths)
+
 
 
 #Need to see the correlation between ST7 and landscape streams
 	ggplot(depths, aes(x = L_depthm, y = st9_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope  = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = H_depthm, y = st9_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
@@ -329,15 +329,15 @@ ggplot(depths, aes(x = L_tempC, y = st9_depthm))+
 	#Q <- Q[2:34,]
 	library(MuMIn)
 
-	Q9_full_mod <- Q9_full[which(Q9_full$Q.mod <= 20),]
-	Q9_gm_mod <- lm(log(Q.mod) ~ log(d9) , Q9_full_mod, na.action = "na.fail")
+	Q9_full_mod <- Q9_full[which(Q9_full$Q.mod <= 20),];Q9_full_mod = Q9_full_mod[which(is.na(Q9_full_mod$d9) == F),]
+	Q9_gm_mod <- lm(log(Q.mod) ~ log(d9)*temp_9, Q9_full_mod, na.action = "na.fail")
 	Q9_MS_mod <- dredge(Q9_gm_mod, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 
-	Q9_gm <- lm(log(Q.mod) ~ log(d9) + temp_9 + log(dL) + temp_L + temp_H + as.factor(summer9) + year9, Q9_full, na.action = "na.fail")
+	Q9_gm <- lm(log(Q.mod) ~ log(d9) + temp_9 + log(dL) + temp_L + temp_H + as.factor(summer9) + year9, Q9_full_mod, na.action = "na.fail")
 	
 	Q9_MS <- dredge(Q9_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 	
-	subset(Q9_MS, delta < 5)
+	subset(Q9_MS_mod, delta < 5)
 	subset(Q9_MS)
 	subset(Q9_MS_mod)
 

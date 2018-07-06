@@ -1,3 +1,5 @@
+#Script for modeling width, depth by discharge relationships ##
+
 ##load libraries
 library(ggplot2)
 library(chron)

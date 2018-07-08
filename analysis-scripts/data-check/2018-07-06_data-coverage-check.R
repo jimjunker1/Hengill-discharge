@@ -13,7 +13,7 @@ ggplot(presHver, aes(x = Pd)) + geom_point(aes(y = Depthm), color = 'blue', size
 
 #Hver starts at mid 2011, good.
 
-pres11D <- read.csv("./stream-data/9736055_ST11L.csv", T)
+pres11D <- read.csv("./stream-data/9736055_ST11L.txt", header = T, se = "\t", quote = "")
 pres11D$Pd <- as.POSIXct(paste(pres11D$Date, pres11D$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 
 lims = as.POSIXct(strptime(c("2010-07-20 18:00:00", "2014-10-21 10:00:00"), format = "%Y-%m-%d %H:%M:%S"))
@@ -27,8 +27,8 @@ pres11U <- read.table("./stream-data/2451129_ST11U.txt", header = T, sep = "\t",
 pres11U$Pd <- as.POSIXct(paste(pres11U$Date, pres11U$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 
 lims = as.POSIXct(strptime(c("2010-07-20 18:00:00", "2015-08-10 14:15:00"), format = "%Y-%m-%d %H:%M:%S"))
-ggplot(pres11U, aes(x = Pd)) + geom_line(aes(y = Depthm), color = 'blue', size = 1.5) +
-  geom_line(aes(y = TempC), color = 'red', size = 1.5) + 
+ggplot(pres11U, aes(x = Pd)) + geom_point(aes(y = Depthm), color = 'blue', size = 1.5) +
+  geom_point(aes(y = TempC), color = 'red', size = 1.5) + 
   scale_x_datetime(limits = lims)
 
 #ST11U depth is empty until mid 2012. Need to update temp from mid 2013 to 2015

@@ -17,6 +17,7 @@ library(dplyr)
 library(data.table)
 library(corrplot)
 library(segmented)
+library(MuMIn)
 theme_set(theme_bw(20))
 
 #load data
@@ -327,29 +328,19 @@ ggplot(depths, aes(x = L_tempC, y = st9_depthm))+
  
 #model selection to determine the best model
 	#Q <- Q[2:34,]
-	library(MuMIn)
+	Q9_full[which(Q9_full$Q.mod >= 20),"Q.mod"] = Q9_full[which(Q9_full$Q.mod >= 20),"Q_US"]
 
-	Q9_full_mod <- Q9_full[which(Q9_full$Q.mod <= 20),];Q9_full_mod = Q9_full_mod[which(is.na(Q9_full_mod$d9) == F),]
-	Q9_gm_mod <- lm(log(Q.mod) ~ log(d9)*temp_9, Q9_full_mod, na.action = "na.fail")
+	Q9_full_mod = Q9_full[which(is.na(Q9_full$d9) == F),]
+	Q9_gm_mod <- lm(log(Q.mod) ~ log(d9), Q9_full_mod, na.action = "na.fail")
 	Q9_MS_mod <- dredge(Q9_gm_mod, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 
-	Q9_gm <- lm(log(Q.mod) ~ log(d9) + temp_9 + log(dL) + temp_L + temp_H + as.factor(summer9) + year9, Q9_full_mod, na.action = "na.fail")
-	
-	Q9_MS <- dredge(Q9_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
-	
 	subset(Q9_MS_mod, delta < 5)
-	subset(Q9_MS)
 	subset(Q9_MS_mod)
 
 
 #looking at colinearity
 	ggplot(Q9_full, aes(x =d9, y = temp_9)) +geom_point()
-	
-	ggplot(Q, aes(x = season, y = T_US_PD)) + geom_boxplot()
-	
-	T_seas_tt <- t.test(T_US_PD ~ season, Q); T_seas_tt
-	
-	T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
+hist(depths$st9_depthm)
 
 sm_rating9 <- lm(log(Q.mod) ~ log(d9), Q9_full_mod); summary(sm_rating9)
 sm_rating9_mod <- lm(log(Q.mod) ~ log(d9), Q9_full); summary(sm_rating9_mod)
@@ -370,17 +361,7 @@ sm_rating9_mod <- lm(log(Q.mod) ~ log(d9), Q9_full); summary(sm_rating9_mod)
 		ylab(expression(paste("Measured DS Q (L",s^-1,")")))+
 		xlab(expression(paste("Fit DS Q (L",s^-1,")")))
 
-
-###building a piecewise regression	
-breaks <- Q9_full
-
-lst <- list(d9 = 0.22)
-
-segmented.mod <- segmented(sm_rating9, seg.Z = ~d9, psi = lst)
-
-
-		
-	mrbias9 <- lm(log(Q.mod)~ fitted, Q9_full); summary(mrbias9)
+	mrbias9 <- lm(log(Q.mod)~ fitted, Q9_full_mod); summary(mrbias9)
 				# Call:
 				# lm(formula = log(Q_DS) ~ fitted, data = Q)
 				
@@ -401,9 +382,6 @@ segmented.mod <- segmented(sm_rating9, seg.Z = ~d9, psi = lst)
 
 #Applying MR to predict new data in depths
 	#first need to code for season
-		depths$summer9 <- as.factor(ifelse(as.numeric(format(depths$time, "%m")) >= 6 & as.numeric(format(depths$time, "%m"))<= 9, 1, 0))
-		depths$year9 <- as.numeric(format(depths$time, "%y"))		
-
 
 	#merge new files	
 	depths_m <- depths

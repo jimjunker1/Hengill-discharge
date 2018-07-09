@@ -16,6 +16,7 @@ library(plyr)
 library(dplyr)
 library(data.table)
 library(corrplot)
+library(MuMIn)
 theme_set(theme_bw(20))
 
 #load data
@@ -24,8 +25,6 @@ Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 presL <- read.csv("./stream-data/9736059_7LO.csv")
 presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
 pres13 <- read.csv("./stream-data/9736053_ST13.csv")
-light <- read.csv("./stream-data/lux_par_final.csv")
-lightmod <- read.csv("./stream-data/Light-est_full.csv")
 
 #Combine the upper and lower logger data if NA on Lower logger
 
@@ -52,9 +51,6 @@ presL$Pd <- as.POSIXct(paste(presL$Date, presL$Time), format = "%m/%d/%y %H:%M:%
 presH$Pd <- as.POSIXct(paste(presH$Date, presH$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres13$Pd <- as.POSIXct(paste(pres13$Date, pres13$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 
-light$Pd <- as.POSIXct(paste(light$date, light$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
-lightmod$Pd <- as.POSIXct(paste(lightmod$date, lightmod$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
-
 #merging the full datetime file for 15min intervals from 7/20/2010 18:00:00 to Oct14
 mylist <- list(pres13, datetime)
 pres13 <- do.call(rbind.fill, mylist)
@@ -65,12 +61,6 @@ presL <- do.call(rbind.fill, mylist)
 mylist <- list(presH, datetime)
 presH <- do.call(rbind.fill, mylist)
 
-mylist <- list(light, datetime)
-light <- do.call(rbind.fill, mylist)
-
-mylist <- list(lightmod, datetime)
-lightmod <- do.call(rbind.fill, mylist)
-
 #pres1 <- pres1[,2:6] #cleaning up row# column
 
 
@@ -78,14 +68,10 @@ lightmod <- do.call(rbind.fill, mylist)
 	presLhr_d <- data.frame(presL$Pd, presL$Depthm, presL$TempC)
 	presHhr_d <- data.frame(presH$Pd, presH$Depthm, presH$TempC)
 	pres13hr_d <- data.frame(pres13$Pd, pres13$Depthm, pres13$TempC)
-	lighthr_d <- data.frame(light$Pd, light$PAR_H)
-	lightmodhr_d <- data.frame(lightmod$Pd, lightmod$light)
-	
+
 	names(presLhr_d) <- c("time", "depthm", "tempC")
 	names(presHhr_d) <- c("time", "depthm", "tempC")
 	names(pres13hr_d) <- c("time", "depthm", "tempC")
-	names(lighthr_d) <- c("time", "light")
-	names(lightmodhr_d) <- c("time", "light.est")
 
 ##First merge all the depth data by time
 	
@@ -101,35 +87,25 @@ lightmod <- do.call(rbind.fill, mylist)
 					list(hour = cut(pres13hr_d$time, breaks = "hour")),
 					mean, na.rm = TRUE)
 
-	lighthr <- aggregate(lighthr_d["light"],
-					list(hour = cut(lighthr_d$time, breaks = "hour")),
-					mean, na.rm = TRUE)
-
-	lightmodhr <- aggregate(lightmodhr_d["light.est"], list(hour = cut(lightmodhr_d$time, breaks = "hour")),
-					sum, na.rm= TRUE)
-
 #convert times to posix object
 
 	presLhr$time <- as.POSIXct(presLhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	presHhr$time <- as.POSIXct(presHhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	pres13hr$time <- as.POSIXct(pres13hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-	lighthr$time <- as.POSIXct(lighthr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-	lightmodhr$time <- as.POSIXct(lightmodhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-
 
 #creating a moving average within the yearl
 
 ##make summer light cumulative variable for each season
-light_year <- as.numeric(format(lightmodhr$time, "%Y"))
-lightmodhr <- cbind(lightmodhr, light_year)
+#light_year <- as.numeric(format(lightmodhr$time, "%Y"))
+#lightmodhr <- cbind(lightmodhr, light_year)
 
-lightmodhr <- lightmodhr %>% group_by(light_year) %>% mutate(cum_light = cumsum(light.est))
+#lightmodhr <- lightmodhr %>% group_by(light_year) %>% mutate(cum_light = cumsum(light.est))
 
-lightmodhr <- ungroup(lightmodhr)
+#lightmodhr <- ungroup(lightmodhr)
 
-lightmodhr <- data.frame(lightmodhr)
+#lightmodhr <- data.frame(lightmodhr)
 
-write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/lightmodhr.csv")
+#write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/lightmodhr.csv")
 
 # # RUNNING ONE TIME, THEN EXPORTING TO GET PT TEMPS
 # #get temp at times of slugs
@@ -138,8 +114,6 @@ write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch
 		 temp_L <- with(presLhr, zoo(tempC, time))
 		 temp_H <- with(presHhr, zoo(tempC, time))
 		 temp_13 <- with(pres13hr, zoo(tempC, time))
-		 light <- with(lighthr, zoo(light, time))
-		 lightmod <- with(lightmodhr, zoo(cum_light, time))
 
 		 d13 <- with(pres13hr, zoo(depthm, time))
 		 dL <- with(presLhr, zoo(depthm, time))
@@ -177,8 +151,6 @@ Q_cor_df <- data.frame(Q_cor)
 		 QP <- cbind(Q13, temp_13 = coredata(temp_13)[ix])
 		 Qw13 <- data.frame(QP)
 
-		
-
 	##  merging the Q and PT depth data
 		
 		#ST13
@@ -186,8 +158,6 @@ Q_cor_df <- data.frame(Q_cor)
 		 dx <- sapply(index(Q13z), f)
 		 QP <- cbind(Qw13, d13 = coredata(d13) [dx])
 		 Q13_full <- data.frame(QP)
-
-		
 
 #merging Temp data
 		 f <-  function(u) which.min(abs(as.numeric(index(temp_L)) - as.numeric(u)))
@@ -211,16 +181,6 @@ Q_cor_df <- data.frame(Q_cor)
 		 dx <- sapply(index(Q13z), f)
 		 QP <- cbind(Q13_full, dH = coredata(dH) [dx])
 		 Q13_full <- data.frame(QP)
-
-		f <- function(u) which.min(abs(as.numeric(index(light)) - as.numeric(u)))
-		dx <- sapply(index(Q13z), f)
-		QP <- cbind(Q13_full, light = coredata(light) [dx])
-		Q13_full <- data.frame(QP)    
-
-		f <- function(u) which.min(abs(as.numeric(index(d13)) - as.numeric(u)))
-		dx <- sapply(index(Q13z), f)
-		QP <- cbind(Q13_full, cum.light = coredata(lightmod) [dx])
-		Q13_full <- data.frame(QP)   
 
 #adding in a season variable
 		
@@ -316,21 +276,17 @@ ggplot(depths, aes(x = L_tempC, y = st13_depthm))+
  
 #model selection to determine the best model
 	#Q <- Q[2:34,]
-	library(MuMIn)
 
-	Q13_full <- Q13_full[-7,]
-	Q13_full <- Q13_full[!is.na(Q13_full$d13),]
-	Q13_gm <- lm(log(Q.mod) ~ log(d13) + cum.light * temp_13 + year13, Q13_full, na.action = "na.fail")
-	Q13_MS <- dredge(Q13_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
-
-	Q13_gm <- lm(log(Q.mod) ~ log(d13) + temp_13 + log(dH) + as.factor(summer13), Q13_full_mod, na.action = "na.fail")
+	Q13_full_mod <- Q13_full[-7,]
+	Q13_full_mod <- Q13_full_mod[!is.na(Q13_full_mod$d13),]
+	#Q13_full_mod = Q13_full_mod[which(Q13_full_mod$Q.mod >= 13),]
+	
+	Q13_gm <- lm(log(Q.mod) ~ log(d13)* temp_13 + log(dH), Q13_full_mod, na.action = "na.fail")
 	
 	Q13_MS <- dredge(Q13_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 	
 	subset(Q13_MS, delta < 5)
 	subset(Q13_MS)
-	subset(Q13_MS_mod)
-
 
 #looking at colinearity
 	ggplot(Q13_full_mod, aes(x =d13, y = temp_13)) +geom_point()
@@ -341,26 +297,24 @@ ggplot(depths, aes(x = L_tempC, y = st13_depthm))+
 	
 	#T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
 
-sm_rating13 <- lm(log(Q.mod) ~ log(d13), Q13_full); summary(sm_rating13)
+sm_rating13 <- lm(log(Q.mod) ~ log(d13), Q13_full_mod); summary(sm_rating13)
 
-				
 # # 				
 
-	Q13_full$fitted <- fitted(sm_rating13)
-	ggplot(Q13_full, aes(x = fitted, y =log(Q.mod)))+
+	Q13_full_mod$fitted <- fitted(sm_rating13)
+	ggplot(Q13_full_mod, aes(x = fitted, y =log(Q.mod)))+
 		geom_point()+
 		geom_abline(intercept = 0, slope = 1)
 	
-	ggplot(Q13_full, aes(x =exp(fitted), y = Q.mod))+
+	ggplot(Q13_full_mod, aes(x =exp(fitted), y = Q.mod))+
 		geom_point(shape = 21, fill = "green", size = 3)+
 		geom_abline(intercept = 0, slope = 1)+
-		xlim(10,20)+
-		ylim(10,20)+
+		xlim(12,17)+
+		ylim(12,17)+
 		stat_smooth(method = "lm")+
 		ylab(expression(paste("Measured DS Q (L",s^-1,")")))+
 		xlab(expression(paste("Fit DS Q (L",s^-1,")")))
-	
-		
+
 	mrbias13 <- lm(log(Q.mod)~ fitted, Q13_full_mod); summary(mrbias13)
 				# Call:
 				# lm(formula = log(Q_DS) ~ fitted, data = Q)
@@ -382,8 +336,6 @@ sm_rating13 <- lm(log(Q.mod) ~ log(d13), Q13_full); summary(sm_rating13)
 
 #Applying MR to predict new data in depths
 	#first need to code for season
-		depths$summer13 <- as.factor(ifelse(as.numeric(format(depths$time, "%m")) >= 6 & as.numeric(format(depths$time, "%m"))<= 9, 1, 0))
-		depths$year13 <- as.numeric(format(depths$time, "%y"))
 	#merge new files	
 	depths_m <- depths
 	names(depths_m) <- c("time", "dL", "temp_L", "dH", "temp_H", "d13", "temp_13") #needs to be renamed so it matches the names in the equation.
@@ -393,7 +345,15 @@ sm_rating13 <- lm(log(Q.mod) ~ log(d13), Q13_full); summary(sm_rating13)
 	
  write.csv(depths_m, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/depth_m5.csv")
 	
+######## For ST13 ######
+hist(Q13_full$Q.mod)
+median(Q13_full$Q.mod) 
+mean(Q13_full$Q.mod) 
+sd(Q13_full$Q.mod)
 
+sd(Q13_full$Q.mod)/mean(Q13_full$Q.mod) 
+
+####################### 
 ##ST13
 	#look at Q over time
 		ggplot(depths_m, aes(x = time, y = Q_mr)) +

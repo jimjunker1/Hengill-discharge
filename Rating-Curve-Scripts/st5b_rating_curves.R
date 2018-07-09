@@ -15,6 +15,7 @@ library(GGally)
 library(plyr)
 library(data.table)
 library(corrplot)
+library(MuMIn)
 theme_set(theme_bw(20))
 
 #load data
@@ -245,30 +246,30 @@ names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st5_dep
 
 
 #Need to see the correlation between ST7 and landscape streams
-	ggplot(depths, aes(x = L_depthm, y = st1_depthm))+
+	ggplot(depths, aes(x = L_depthm, y = st5_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = H_depthm, y = st5_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = st5_tempC, y = st5_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		ylim(0,0.5)
 
 ggplot(depths, aes(x = L_tempC, y = st5_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		ylim(0,0.5)
 
 #multiple regression
@@ -277,26 +278,26 @@ ggplot(depths, aes(x = L_tempC, y = st5_depthm))+
 #NEED TO FIGURE OUT WHICH PD TEMP DATA TO USE
 	#US DS comp with cond probes
 	#comparing temperature data between the cond loggers
-	ggplot(Q1_full, aes(x = temp_US_m, y = temp_DS_m))+
+	ggplot(Q5_full, aes(x = temp_US_m, y = temp_DS_m))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,30)+
 		ylim(0,30)
 		
 	#Temp data between US logger and PT <- This is biased slightly low
-	ggplot(Q1_full, aes(x = temp_US_m, y = temp_1))+
+	ggplot(Q5_full, aes(x = temp_US_m, y = temp_5))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,30)+
 		ylim(0,30)
 		
 	#Temp data between DS and PT <- This is biased slightly high
-	ggplot(Q5_full, aes(y = temp_DS_m, x = temp_1))+
+	ggplot(Q5_full, aes(y = temp_DS_m, x = temp_5))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,30)+
 		ylim(0,30)
 		
@@ -305,7 +306,7 @@ ggplot(depths, aes(x = L_tempC, y = st5_depthm))+
 		geom_point()+
 		geom_text() +
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)
+		geom_abline(intercept = 0, slope = 1)
 		#xlim()+
 		#ylim()
 
@@ -313,36 +314,36 @@ ggplot(depths, aes(x = L_tempC, y = st5_depthm))+
 	ggplot(Q5_full, aes(y = Q5_full$Q.mod, x = Q5_full$d5))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0.28, 0.32)+
 		ylim(15,30)
 
 	ggplot(Q5_full, aes(y = Q5_full$Q.mod, x = Q5_full$temp_5))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,25)+
 		ylim(15,30)
 
 	ggplot(pres5hr_d, aes(y = depthm, x = tempC)) +
 		geom_point() + 
 		stat_smooth(method = "lm") +
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,25)+
 		ylim(0,1)
 
 #model selection to determine the best model
 	#Q <- Q[2:34,]
-	library(MuMIn)
 	
 #st5
-
-	Q5_gm <- lm(log(Q.mod) ~ log(d5) + temp_5  + log(dH) + cum.light, Q5_full, na.action = "na.fail")
+  
+	Q5_gm <- lm(log(Q.mod) ~ log(d5) + temp_5  + log(dH), Q5_full, na.action = "na.fail")
+	Q5_MS <- dredge(Q5_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
+	hist(log(Q5_full$Q.mod))
 	#Q5_gm <- lm(Q.mod ~ d5 + temp_5 + as.factor(summer5), Q5_full, na.action = "na.fail")
 	Q5_full_mod <- Q5_full[-6,]
-	Q5_gm_mod <- lm(log(Q.mod) ~ log(d5) + temp_5 + log(d5)*temp_5 + log(dH) + cum.light, Q5_full_mod, na.action = "na.fail")
+	Q5_gm_mod <- lm(log(Q.mod) ~ log(d5)*I(summer5) + temp_5 + log(dH), Q5_full_mod, na.action = "na.fail")
 
-	Q5_MS <- dredge(Q5_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 	Q5_MS_mod <- dredge(Q5_gm_mod, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 	
 	subset(Q5_MS, delta < 5)
@@ -350,18 +351,14 @@ ggplot(depths, aes(x = L_tempC, y = st5_depthm))+
 	subset(Q5_MS_mod)
 
 #looking at colinearity
-	ggplot(Q1_full, aes(x =d1, y = temp_1)) +geom_point()
+	ggplot(Q5_full, aes(x =d5, y = temp_5)) +geom_point()
 	
-	ggplot(Q, aes(x = season, y = T_US_PD)) + geom_boxplot()
+	ggplot(Q5_full_mod, aes(x =d5, y = temp_5)) +geom_point()
 	
 	T_seas_tt <- t.test(T_US_PD ~ season, Q); T_seas_tt
 	
 	T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
 
-				
-		
-	mrbias <- lm(log(Q.mod)~ fitted, Q5_full_mod); summary(mrbias)
-	
 #ST5	
 sm_rating5_mod <- lm(log(Q.mod) ~ log(d5), Q5_full_mod); summary(sm_rating5_mod)
 sm_rating5 <- lm(log(Q.mod) ~ log(d5) + temp_5, Q5_full); summary(sm_rating5)
@@ -379,7 +376,7 @@ Q5_full$fitted <- fitted(sm_rating5)
 
 
 Q5_full_mod$fitted <- fitted(sm_rating5_mod)
-	ggplot(Q5_full, aes(x = fitted, y =log(Q.mod)))+
+	ggplot(Q5_full_mod, aes(x = fitted, y =log(Q.mod)))+
 		geom_point()+
 		geom_abline(intercept = 0, slope = 1)
 	
@@ -394,25 +391,18 @@ Q5_full_mod$fitted <- fitted(sm_rating5_mod)
 
 	mrbias <- lm(log(Q.mod)~ fitted, Q5_full_mod); summary(mrbias)
 
-
-
 #Applying MR to predict new data in depths
 	#first need to code for season
-		depths$summer5 <- as.factor(ifelse(as.numeric(format(depths$time, "%m")) >= 6 & as.numeric(format(depths$time, "%m"))<= 9, 1, 0))
-		
 #ST5
 	depths_m <- depths
 	names(depths_m) <- c("time", "dL", "temp_L", "dH", "temp_H", "d5", "temp_5") #needs to be renamed so it matches the names in the equation.
 	
-	
-	#predict Q
+#predict Q
 	depths_m$Q_mr <- exp(predict(sm_rating5_mod, depths_m))
 	
  write.csv(depths_m, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/st5/depth_m5.csv")
-	
 
-
-##ST5
+ ##ST5
 
 dev.new()
 	#look at Q over time
@@ -420,15 +410,15 @@ dev.new()
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q5_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
-		ylab(expression(paste("Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
+		ylab(expression(paste("Q (L ", s^1,")")))#+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
 		
 	ggplot(depths_m, aes(x = time, y = Q_mr)) +
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q5_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
 		ylab(expression(paste(log[10]," Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
 		scale_y_log10()
 
 
@@ -448,7 +438,7 @@ F2 = ggplot(Q5_full_mod, aes(y = Q.mod, x = d5, label= Qdate))+
 		geom_text() +
 		scale_color_brewer(palette = "Set1") +
 		#stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1) +
+		geom_abline(intercept = 0, slope = 1) +
 		#xlim(.35, .45) +
 		ggtitle("Depth - Q relationship")
 		#ylim(0.25,0.50)

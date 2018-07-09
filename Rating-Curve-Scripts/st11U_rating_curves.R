@@ -23,8 +23,9 @@ datetime <- read.csv("./stream-data/All_DateTime.csv")
 Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 presL <- read.csv("./stream-data/9736059_7LO.csv")
 presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
-pres11U <- read.csv("./stream-data/2451129_ST11U.csv")
+pres11U <- read.table("./stream-data/2451129_ST11U.txt", header = T, sep = "\t", quote = "")
 pres17 <- read.csv("./stream-data/9736062_ST17.csv")
+pres11D <- read.table("./stream-data/9736055_ST11L.txt", header = T, se = "\t", quote = "")
 
 #Combine the upper and lower logger data if NA on Lower logger
 
@@ -51,7 +52,7 @@ presL$Pd <- as.POSIXct(paste(presL$Date, presL$Time), format = "%m/%d/%y %H:%M:%
 presH$Pd <- as.POSIXct(paste(presH$Date, presH$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres11U$Pd <- as.POSIXct(paste(pres11U$Date, pres11U$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres17$Pd <- as.POSIXct(paste(pres17$Date, pres17$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
-
+pres11D$Pd = as.POSIXct(paste(pres11D$Date, pres11D$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 #merging the full datetime file for 15min intervals from 7/20/2010 18:00:00 to Oct14
 mylist <- list(pres11U, datetime)
 pres11U <- do.call(rbind.fill, mylist)
@@ -65,6 +66,9 @@ presH <- do.call(rbind.fill, mylist)
 mylist <- list(pres17, datetime)
 pres17 <- do.call(rbind.fill, mylist)
 
+mylist <- list(pres11D, datetime)
+pres11D <- do.call(rbind.fill, mylist)
+
 #pres1 <- pres1[,2:6] #cleaning up row# column
 
 
@@ -73,12 +77,14 @@ pres17 <- do.call(rbind.fill, mylist)
 	presHhr_d <- data.frame(presH$Pd, presH$Depthm, presH$TempC)
 	pres11Uhr_d <- data.frame(pres11U$Pd, pres11U$Depthm, pres11U$TempC)
 	pres17hr_d <- data.frame(pres17$Pd, pres17$Depthm, pres17$TempC)
+	pres11Dhr_d = data.frame(pres11D$Pd, pres11D$Depthm, pres11D$TempC)
 	
 	names(presLhr_d) <- c("time", "depthm", "tempC")
 	names(presHhr_d) <- c("time", "depthm", "tempC")
 	names(pres11Uhr_d) <- c("time", "depthm", "tempC")
 	names(pres17hr_d) <- c("time", "depthm", "tempC")
-
+	names(pres11Dhr_d) <- c("time", "depthm", "tempC")
+	
 ##First merge all the depth data by time
 	
 	presLhr <- aggregate(presLhr_d[c("depthm", "tempC")],
@@ -97,14 +103,17 @@ pres17 <- do.call(rbind.fill, mylist)
 					list(hour = cut(pres17hr_d$time, breaks = "hour")),
 					mean, na.rm = TRUE)
 
-
+	pres11Dhr <- aggregate(pres11Dhr_d[c("depthm", "tempC")],
+	                      list(hour = cut(pres11Dhr_d$time, breaks = "hour")),
+	                      mean, na.rm = TRUE)
 #convert times to posix object
 
 	presLhr$time <- as.POSIXct(presLhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	presHhr$time <- as.POSIXct(presHhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	pres11Uhr$time <- as.POSIXct(pres11Uhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	pres17hr$time <- as.POSIXct(pres17hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-
+	pres11Dhr$time <- as.POSIXct(pres11Dhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
+	
 
 	
 # # RUNNING ONE TIME, THEN EXPORTING TO GET PT TEMPS
@@ -115,16 +124,20 @@ pres17 <- do.call(rbind.fill, mylist)
 		 temp_H <- with(presHhr, zoo(tempC, time))
 		 temp_11U <- with(pres11Uhr, zoo(tempC, time))
 		 temp_17 <- with(pres17hr, zoo(tempC, time))
+		 temp_11D <- with(pres11Dhr, zoo(tempC, time))
+		 
 		 
 		 d11U <- with(pres11Uhr, zoo(depthm, time))
 		 dL <- with(presLhr, zoo(depthm, time))
 		 dH <- with(presHhr, zoo(depthm, time))
 		 d17 <- with(pres17hr, zoo(depthm, time))
-
+		 d11D <- with(pres11Dhr, zoo(depthm, time))
+		 
 ######Looking at the correlations among the depths of each stream #######
 
 Q_cor <- merge(d11U, d17)
 Q_cor <- merge(Q_cor, dH)
+Q_cor = merge(Q_cor, d11D)
 Q_cor <- na.omit(Q_cor)
 
 Q_cor_df <- data.frame(Q_cor)
@@ -146,10 +159,16 @@ cor(Q_cor_df)
 			Q17 <- Q17[!is.na(Q17$Q.mod),]
 			Q17 <- Q17[order(Q17$Pd),]
 		 	Q17z <- with(Q17, zoo(Q.mod, Pd))
+		 	
+		 	Q11D <- Q[which(Q$Qstream == "st11L"),]
+		 	Q11D <- Q11D[!is.na(Q11D$Q.mod),]
+		 	Q11D <- Q11D[order(Q11D$Pd),]
+		 	Q11Dz <- with(Q11D, zoo(Q.mod, Pd))
 
 			Q7 <- Q[which(Q$Qstream == "st7"),]
 			Q7 <- Q7[order(Q7$Pd),]
 			Q7z <- with(Q7, zoo(Q.mod, Pd))
+			
 			
 	# #merge Q and PT temp data
 	
@@ -182,10 +201,10 @@ cor(Q_cor_df)
 		 QP <- cbind(Q11U_full, temp_H = coredata(temp_H)[ix])
 		 Q11U_full <- data.frame(QP)
 			
-		 #f <- function(u) which.min(abs(as.numeric(index(d1)) - as.numeric(u)))
-		 #dx <- sapply(index(Q1z), f)
-		 #QP <- cbind(Q_full, dL = coredata(dL) [dx])
-		 #Q_full <- data.frame(QP)
+		 f <- function(u) which.min(abs(as.numeric(index(d11D)) - as.numeric(u)))
+		 dx <- sapply(index(Q11Uz), f)
+		 QP <- cbind(Q11U_full, temp_11D = coredata(temp_11D) [ix])
+		 Q11U_full <- data.frame(QP)
 		
 		
 
@@ -199,7 +218,11 @@ cor(Q_cor_df)
 		 dx <- sapply(index(Q11Uz), f)
 		 QP <- cbind(Q11U_full, d17 = coredata(d17) [dx])
 		 Q11U_full <- data.frame(QP)
-	
+		 
+		 f <- function(u) which.min(abs(as.numeric(index(d11D)) - as.numeric(u)))
+		 dx <- sapply(index(Q11Uz), f)
+		 QP <- cbind(Q11U_full, d11D = coredata(d11D) [dx])
+		 Q11U_full <- data.frame(QP)
 
 #adding in a season variable
 		
@@ -224,8 +247,9 @@ Q11U_full <- cbind(Q11U_full, year11U)
 depths <- merge(presLhr[,2:4], presHhr[,2:4], by = "time", all = TRUE)
 depths <- merge(depths, pres11Uhr[,2:4], by = "time", all = T)
 depths = merge(depths, pres17hr[,2:4], by = 'time', all = T)
+depths = merge(depths, pres11Dhr[,2:4], by = 'time', all = T)
 depths <- depths[!as.numeric(format(depths$time, "%y")) == 1,]
-names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st11U_depthm", "st11U_tempC", "st17_depthm", "st17_tempC")
+names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st11U_depthm", "st11U_tempC", "st17_depthm", "st17_tempC","st11D_depthm", "st11D_tempC")
 
 
 # write.csv(depths, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Landscape_all.csv")
@@ -264,6 +288,14 @@ ggplot(depths, aes(x = st17_depthm, y = st11U_depthm))+
   geom_abline(intercept = 0, slope = 1)+
   ylim(0,0.5)
 
+ggplot(depths, aes(x = st11D_depthm, y = st11U_depthm))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  geom_abline(intercept = 0, slope = 1)+
+  ylim(0,0.5)
+
+ident = subset(depths, st11U_depthm == st11D_depthm)
+
 #multiple regression
  #season <- S = June - Sept; NS = other months
 
@@ -300,27 +332,48 @@ ggplot(depths, aes(x = st17_depthm, y = st11U_depthm))+
 		geom_abline(intercept = 0, slope = 1)+
 		xlim(0.2, 0.3)+
 		ylim(0,50)
-
+	
+	ggplot(Q11U_full, aes(y = Q11U_full$Q.mod, x = Q11U_full$d11D)) +
+	geom_point()+
+	  stat_smooth(method = "lm")+
+	  geom_abline(intercept = 0, slope = 1)+
+	  xlim(0.2, 0.3)+
+	  ylim(0,50)
+	
+	
+	ggplot(Q11U_full, aes(y = Q11U_full$Q.mod, x = Q11U_full$d17)) +
+	  geom_point()+
+	  stat_smooth(method = "lm")+
+	  geom_abline(intercept = 0, slope = 1)+
+	  xlim(0.2, 0.3)+
+	  ylim(0,50)
  
 #model selection to determine the best model
 	#Q <- Q[2:34,]
-
+##Model fit on the 2015 data of depth-Q relationships. This should be primary
 	Q11U_full_mod <- Q11U_full[!is.na(Q11U_full$d11U),]
 	Q11U_gm_mod <- lm(log(Q.mod) ~ log(d11U), Q11U_full_mod, na.action = "na.fail")
 	Q11U_MS_mod <- dredge(Q11U_gm_mod, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 
-	Q11U_gm <- lm(log(Q.mod) ~ log(d11U) + temp_11U + log(dL) + temp_L + temp_H + as.factor(summer11U), Q11U_full_mod, na.action = "na.fail")
+	Q11U_gm <- lm(log(Q.mod) ~ log(d11U) + temp_11U, Q11U_full_mod, na.action = "na.fail")
 	
 	Q11U_MS <- dredge(Q11U_gm, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 	
 	subset(Q11U_MS, delta < 5)
 	subset(Q11U_MS)
 	subset(Q11U_MS_mod)
-
+	
+# Now fill in the time series where we have ST17 and ST11D data
+	
+	Q11U_full_mod2 = Q11U_full[is.na(Q11U_full$d11U) & !is.na(Q11U_full$d17) & !is.na(Q11U_full$d11D),]
+	Q11U_gm_mod2 <- lm(log(Q.mod) ~ log(d17) + log(d11D), Q11U_full_mod2, na.action = "na.fail")
+	Q11U_MS_mod2 <- dredge(Q11U_gm_mod2, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
+	subset(Q11U_MS_mod2)
+	
 
 #looking at colinearity
 	ggplot(Q11U_full_mod, aes(x =d11U, y = temp_11U)) +geom_point()
-	
+	ggplot
 	#ggplot(Q, aes(x = season, y = T_US_PD)) + geom_boxplot()
 	
 	#T_seas_tt <- t.test(T_US_PD ~ season, Q); T_seas_tt
@@ -328,14 +381,21 @@ ggplot(depths, aes(x = st17_depthm, y = st11U_depthm))+
 	#T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
 
 sm_rating11U <- lm(log(Q.mod) ~ log(d11U), Q11U_full_mod); summary(sm_rating11U)
+plot(sm_rating11U)
 
-				
+sm_rating11U2 = lm(log(Q.mod)~ log(d17), Q11U_full_mod2);summary(sm_rating11U2)
+plot(sm_rating11U2)				
 # # 				
 
 	Q11U_full_mod$fitted <- fitted(sm_rating11U)
 	ggplot(Q11U_full_mod, aes(x = fitted, y =log(Q.mod)))+
 		geom_point()+
 		geom_abline(intercept = 0, slope = 1)
+	
+	Q11U_full_mod2$fitted <- fitted(sm_rating11U2)
+	ggplot(Q11U_full_mod2, aes(x = fitted, y =log(Q.mod)))+
+	  geom_point()+
+	  geom_abline(intercept = 0, slope = 1)
 	
 	ggplot(Q11U_full_mod, aes(x =exp(fitted), y = Q.mod))+
 		geom_point(shape = 21, fill = "green", size = 3)+
@@ -368,14 +428,27 @@ sm_rating11U <- lm(log(Q.mod) ~ log(d11U), Q11U_full_mod); summary(sm_rating11U)
 
 #Applying MR to predict new data in depths
 	#first need to code for season
-		depths$summer11U <- as.factor(ifelse(as.numeric(format(depths$time, "%m")) >= 6 & as.numeric(format(depths$time, "%m"))<= 9, 1, 0))
-		
+
 	#merge new files	
 	depths_m <- depths
-	names(depths_m) <- c("time", "dL", "temp_L", "dH", "temp_H", "d11U", "temp_11U") #needs to be renamed so it matches the names in the equation.
+	names(depths_m) <- c("time", "dL", "temp_L", "dH", "temp_H", "d11U", "temp_11U", "d17", "temp_17", "d11D", "temp_11D") #needs to be renamed so it matches the names in the equation.
 	
+	depths_d11 = depths_m[!is.na(depths_m$d11U),]
+	depths_d17 = depths_m[is.na(depths_m$d11U) & !is.na(depths_m$d17),]
+	
+	x = merge(depths_d11, depths_d17, by = "time") #should be zero
+	rm(x)
 	#predict Q
-	depths_m$Q_mr <- exp(predict(sm_rating11U, depths_m))
+	depths_d11$Q_mr <- exp(predict(sm_rating11U, depths_d11))
+	depths_d17$Q_mr = exp(predict(sm_rating11U2, depths_d17))
+	
+  depths_m = merge(depths_m, depths_d11, by = c("time", "dL", "temp_L", "dH", "temp_H", "d11U", "temp_11U", "d17", "temp_17", "d11D", "temp_11D"), all = T)
+	depths_m[is.na(depths_m$d11U) & !is.na(depths_m$d17),"Q_mr"] = depths_d17$Q_mr[match(depths_m[is.na(depths_m$d11U) & !is.na(depths_m$d17),"time"], depths_d17[,"time"])][which(is.na(depths_m$Q_mr[is.na(depths_m$d11U) & !is.na(depths_m$d17)]))]
+	which(depths_m$Q_mr == max(depths_m$Q_mr,na.rm = T))
+	depths_m[29450:29480,c("time","temp_11U","Q_mr")]
+	ggplot(depths_m[29450:29480,c("time","temp_11U","Q_mr")], aes(x = time, y = log10(Q_mr))) + geom_point()
+	
+	
 	
  write.csv(depths_m, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/depth_m5.csv")
 	
@@ -396,6 +469,8 @@ sm_rating11U <- lm(log(Q.mod) ~ log(d11U), Q11U_full_mod); summary(sm_rating11U)
 		ylab(expression(paste(log[10]," Q (L ", s^1,")")))+
 		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
 		scale_y_log10()
+	
+#depths_m is a solid Q profile. Can be added to full temp-Q-depth file.
 	
 	#export data
 	write.csv(depths_m, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/st11U/depths_m11U.csv")

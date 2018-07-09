@@ -108,19 +108,19 @@ pres6[which(pres6$Pd >= "2013-02-25 15:00:00" & pres6$Pd <= "2013-07-10 13:00:00
 #ST6 is good until early mid, then needs depth. Temp is weird. Switched to 
 # pendant rather than well and cut a couple spots.
 
-pres8 <- read.csv("./stream-data/9736058_ST8.csv")
+pres8 <- read.table("./stream-data/9736058_ST8.txt", header = T, sep = "\t", quote = "")
 pres8$Pd <- as.POSIXct(paste(pres8$Date, pres8$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 
 lims = as.POSIXct(strptime(c("2010-07-20 18:00:00", "2014-10-22 13:00:00"), format = "%Y-%m-%d %H:%M:%S"))
-ggplot(pres8, aes(x = Pd)) + geom_line(aes(y = Depthm), color = 'blue', size = 1.5) +
-  geom_line(aes(y = TempC), color = 'red', size = 1.5) + 
+ggplot(pres8, aes(x = Pd)) + geom_point(aes(y = Depthm), color = 'blue', size = 1.5) +
+  geom_point(aes(y = TempC), color = 'red', size = 1.5) + 
   scale_x_datetime(limits = lims)
 
-#ST8 is good.
-pres9 <- read.csv("./stream-data/9736054_ST9.csv")
+#ST8 is good. and rating curve is good.
+pres9 <- read.table("./stream-data/9736054_ST9.txt", header = T, sep = "\t", quote = "")
 pres9$Pd <- as.POSIXct(paste(pres9$Date, pres9$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 
-lims = as.POSIXct(strptime(c("2010-07-20 18:00:00", "2014-10-22 13:00:00"), format = "%Y-%m-%d %H:%M:%S"))
+lims = as.POSIXct(strptime(c("2010-07-20 18:00:00", "2015-08-10 14:15:00"), format = "%Y-%m-%d %H:%M:%S"))
 ggplot(pres9, aes(x = Pd)) + geom_point(aes(y = Depthm), color = 'blue', size = 1.5) +
   geom_point(aes(y = TempC), color = 'red', size = 1.5) + 
   scale_x_datetime(limits = lims)

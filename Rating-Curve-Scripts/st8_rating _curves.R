@@ -16,6 +16,7 @@ library(plyr)
 library(data.table)
 library(corrplot)
 library(dplyr)
+library(MuMIn)
 theme_set(theme_bw(20))
 
 #load data
@@ -24,8 +25,7 @@ Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 presL <- read.csv("./stream-data/9736059_7LO.csv")
 presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
 pres8 <- read.csv("./stream-data/9736058_ST8.csv")
-light <- read.csv("./stream-data/lux_par_final.csv")
-lightmod <- read.csv("./stream-data/Light-est_full.csv")
+
 
 #Combine the upper and lower logger data if NA on Lower logger
 
@@ -52,9 +52,6 @@ presL$Pd <- as.POSIXct(paste(presL$Date, presL$Time), format = "%m/%d/%y %H:%M:%
 presH$Pd <- as.POSIXct(paste(presH$Date, presH$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres8$Pd <- as.POSIXct(paste(pres8$Date, pres8$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 
-light$Pd <- as.POSIXct(paste(light$date, light$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
-lightmod$Pd <- as.POSIXct(paste(lightmod$date, lightmod$time),format = "%m/%d/%y %H:%M:%S", tz = "UTC")
-
 #merging the full datetime file for 15min intervals from 7/20/2010 18:00:00 to Oct14
 mylist <- list(pres8, datetime)
 pres8 <- do.call(rbind.fill, mylist)
@@ -65,12 +62,6 @@ presL <- do.call(rbind.fill, mylist)
 mylist <- list(presH, datetime)
 presH <- do.call(rbind.fill, mylist)
 
-mylist <- list(light, datetime)
-light <- do.call(rbind.fill, mylist)
-
-mylist <- list(lightmod, datetime)
-lightmod <- do.call(rbind.fill, mylist)
-
 #pres1 <- pres1[,2:6] #cleaning up row# column
 
 
@@ -78,14 +69,10 @@ lightmod <- do.call(rbind.fill, mylist)
 	presLhr_d <- data.frame(presL$Pd, presL$Depthm, presL$TempC)
 	presHhr_d <- data.frame(presH$Pd, presH$Depthm, presH$TempC)
 	pres8hr_d <- data.frame(pres8$Pd, pres8$Depthm, pres8$TempC)
-	lighthr_d <- data.frame(light$Pd, light$PAR_H)
-	lightmodhr_d <- data.frame(lightmod$Pd, lightmod$light)
-	
+
 	names(presLhr_d) <- c("time", "depthm", "tempC")
 	names(presHhr_d) <- c("time", "depthm", "tempC")
 	names(pres8hr_d) <- c("time", "depthm", "tempC")
-	names(lighthr_d) <- c("time", "light")
-	names(lightmodhr_d) <- c("time", "light.est")
 
 ##First merge all the depth data by time
 	
@@ -101,35 +88,13 @@ lightmod <- do.call(rbind.fill, mylist)
 					list(hour = cut(pres8hr_d$time, breaks = "hour")),
 					mean, na.rm = TRUE)
 
-	lighthr <- aggregate(lighthr_d["light"],
-					list(hour = cut(lighthr_d$time, breaks = "hour")),
-					mean, na.rm = TRUE)
-
-	lightmodhr <- aggregate(lightmodhr_d["light.est"], list(hour = cut(lightmodhr_d$time, breaks = "hour")),
-					sum, na.rm= TRUE)
-
 #convert times to posix object
 
 	presLhr$time <- as.POSIXct(presLhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	presHhr$time <- as.POSIXct(presHhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 	pres8hr$time <- as.POSIXct(pres8hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-	lighthr$time <- as.POSIXct(lighthr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-	lightmodhr$time <- as.POSIXct(lightmodhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
 
-#creating a moving average within the yearl
-
-##make summer light cumulative variable for each season
-light_year <- as.numeric(format(lightmodhr$time, "%Y"))
-lightmodhr <- cbind(lightmodhr, light_year)
-
-lightmodhr <- lightmodhr %>% group_by(light_year) %>% mutate(cum_light = cumsum(light.est))
-
-lightmodhr <- ungroup(lightmodhr)
-
-lightmodhr <- data.frame(lightmodhr)
-
-write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/lightmodhr.csv")
-
+	#creating a moving average within the yearl
 
 # # RUNNING ONE TIME, THEN EXPORTING TO GET PT TEMPS
 # #get temp at times of slugs
@@ -138,9 +103,7 @@ write.csv(lightmodhr, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch
 		 temp_L <- with(presLhr, zoo(tempC, time))
 		 temp_H <- with(presHhr, zoo(tempC, time))
 		 temp_8 <- with(pres8hr, zoo(tempC, time))
-		 light <- with(lighthr, zoo(light, time))
-		 lightmod <- with(lightmodhr, zoo(cum_light, time))
- 
+
 		 d8 <- with(pres8hr, zoo(depthm, time))
 		 dL <- with(presLhr, zoo(depthm, time))
 		 dH <- with(presHhr, zoo(depthm, time))
@@ -215,32 +178,11 @@ Q_cor_df <- data.frame(Q_cor)
 		QP <- cbind(Q8_full, dH = coredata(dH) [dx])
 		Q8_full <- data.frame(QP)
 
-		f <- function(u) which.min(abs(as.numeric(index(light)) - as.numeric(u)))
-		dx <- sapply(index(Q8z), f)
-		QP <- cbind(Q8_full, light = coredata(light) [dx])
-		Q8_full <- data.frame(QP)    
-
-		f <- function(u) which.min(abs(as.numeric(index(d8)) - as.numeric(u)))
-		dx <- sapply(index(Q8z), f)
-		QP <- cbind(Q8_full, cum.light = coredata(lightmod) [dx])
-		Q8_full <- data.frame(QP) 
-
-#adding in a season variable
-		
-summer8 <- 	ifelse(as.numeric(format(Q8_full$Pd, "%m")) >= 6 & as.numeric(format(Q8_full$Pd, "%m"))<= 9, 1, 0) 		 		
-
-Q8_full <- cbind(Q8_full, summer8)
-
-year8 <- as.numeric(format(Q8_full$Pd, "%y"))
-
-Q8_full <- cbind(Q8_full, year8)
-					# #just check to make sure files are matched up right
+# #just check to make sure files are matched up right
 				 ggplot(Qw8, aes(x = Q.mod, y = Q_DS)) + geom_point()
 				 #ggplot(Qw1, aes(x = Q.mod, y = Q_DS)) + geom_point()
 	# #Export
 	# write.csv(Qw2, file = "~/Dropbox/JMH_dropbox/stephanson2/Projects/Cross Postdoc/Data/NaCl & nutrient slugs/rating curves/transducer data/Qw2.csv")
-
-
 # combine PT files
  
  #ST8
@@ -248,39 +190,33 @@ depths <- merge(presLhr[,2:4], presHhr[,2:4], by = "time", all = TRUE)
 depths <- merge(depths, pres8hr[,2:4], by = "time", all = T)
 depths <- depths[!as.numeric(format(depths$time, "%y")) == 1,]
 names(depths) <- c("time","L_depthm", "L_tempC", "H_depthm", "H_tempC", "st8_depthm", "st8_tempC")
-
-
-
-
-
 # write.csv(depths, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/Landscape_all.csv")
 
-
 #Need to see the correlation between ST7 and landscape streams
-	ggplot(depths, aes(x = L_depthm, y = st1_depthm))+
+	ggplot(depths, aes(x = L_depthm, y = st8_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
-ggplot(depths, aes(x = H_depthm, y = st1_depthm))+
+ggplot(depths, aes(x = H_depthm, y = st8_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,0.5)+
 		ylim(0,0.5)
 
-ggplot(depths, aes(x = st1_tempC, y = st1_depthm))+
+ggplot(depths, aes(x = st8_tempC, y = st8_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		ylim(0,0.5)
 
-ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
+ggplot(depths, aes(x = L_tempC, y = st8_depthm))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		ylim(0,0.5)
 
 #multiple regression
@@ -292,7 +228,7 @@ ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
 	ggplot(Q8_full, aes(x = temp_US_m, y = temp_DS_m))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(0,20)+
 		ylim(0,20)
 		
@@ -300,7 +236,7 @@ ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
 	ggplot(Q8_full, aes(x = temp_US_m, y = temp_8))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(20,23)+
 		ylim(20,23)
 		
@@ -308,7 +244,7 @@ ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
 	ggplot(Q8_full, aes(y = temp_DS_m, x = temp_8))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)+
+		geom_abline(intercept = 0, slope = 1)+
 		xlim(20,23)+
 		ylim(20,23)
 		
@@ -316,7 +252,7 @@ ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
 	ggplot(Q8_full, aes(y = Q8_full$Q.mod, x = Q8_full$d8))+
 		geom_point()+
 		stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1)
+		geom_abline(intercept = 0, slope = 1)
 		#xlim(0.125, .3)+
 		#ylim(0,70)
 
@@ -325,7 +261,6 @@ ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
  
 #model selection to determine the best model
 	#Q <- Q[2:34,]
-	library(MuMIn)
 
 	Q8_full_mod <- Q8_full[which(Q8_full$Q.mod <= 40),]
 	Q8_gm_mod <- lm(log(Q.mod) ~ log(d8) * temp_8, Q8_full_mod, na.action = "na.fail")
@@ -342,12 +277,6 @@ ggplot(depths, aes(x = L_tempC, y = st1_depthm))+
 
 #looking at colinearity
 	ggplot(Q8_full_mod, aes(x =d8, y = temp_8)) +geom_point()
-	
-	ggplot(Q, aes(x = season, y = T_US_PD)) + geom_boxplot()
-	
-	T_seas_tt <- t.test(T_US_PD ~ season, Q); T_seas_tt
-	
-	T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
 
 sm_rating8 <- lm(log(Q.mod) ~ log(d8) + temp_8, Q8_full_mod); summary(sm_rating8)
 
@@ -356,7 +285,7 @@ sm_rating8 <- lm(log(Q.mod) ~ log(d8) + temp_8, Q8_full_mod); summary(sm_rating8
 	ggplot(Q8_full_mod, aes(y = Q.mod, x = d8, group = temp_8, colour = temp_8))+
 		geom_point(size = 5.5, aes(colour = temp_8)) +
 		stat_smooth(method = "lm", se = FALSE)+
-		geom_abline(intercept = 0, line = 1)
+		geom_abline(intercept = 0, slope = 1)
 		#xlim(0.125, .3)+
 		#ylim(0,70)
 
@@ -398,8 +327,7 @@ sm_rating8 <- lm(log(Q.mod) ~ log(d8) + temp_8, Q8_full_mod); summary(sm_rating8
 
 #Applying MR to predict new data in depths
 	#first need to code for season
-		depths$summer8 <- as.factor(ifelse(as.numeric(format(depths$time, "%m")) >= 6 & as.numeric(format(depths$time, "%m"))<= 9, 1, 0))
-		
+
 	#merge new files	
 	depths_m <- depths
 	names(depths_m) <- c("time", "dL", "temp_L", "dH", "temp_H", "d8", "temp_8") #needs to be renamed so it matches the names in the equation.
@@ -416,15 +344,15 @@ sm_rating8 <- lm(log(Q.mod) ~ log(d8) + temp_8, Q8_full_mod); summary(sm_rating8
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q8_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
-		ylab(expression(paste("Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
+		ylab(expression(paste("Q (L ", s^1,")")))#+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
 		
 	ggplot(depths_m, aes(x = time, y = Q_mr)) +
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q8_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
 		ylab(expression(paste(log[10]," Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
 		scale_y_log10()
 	
 	#export data
@@ -445,7 +373,7 @@ F2 = ggplot(Q8_full_mod, aes(y = Q.mod, x = d8, label= Qdate))+
 		geom_text() +
 		scale_color_brewer(palette = "Set1") +
 		#stat_smooth(method = "lm")+
-		geom_abline(intercept = 0, line = 1) +
+		geom_abline(intercept = 0, slope = 1) +
 		#xlim(0.35, 0.45) +
 		ggtitle("Depth - Q relationship")
 		#ylim(0.25,.50)

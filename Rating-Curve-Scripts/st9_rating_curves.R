@@ -25,7 +25,7 @@ datetime <- read.csv("./stream-data/All_DateTime.csv")
 Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 presL <- read.csv("./stream-data/9736059_7LO.csv")
 presH <- read.csv("./stream-data/9736163_7HI_noNAs.csv")
-pres9 <- read.csv("./stream-data/9736054_ST9.csv")
+pres9 <- read.table("./stream-data/9736054_ST9.txt", header = T, sep = "\t", quote = "")
 #light <- read.csv("./stream-data/lux_par_final.csv")
 #lightmod <- read.csv("./stream-data/Light-est_full.csv")
 
@@ -155,7 +155,7 @@ Q_cor <- merge(Q_cor, dH)
 Q_cor <- na.omit(Q_cor)
 
 Q_cor_df <- data.frame(Q_cor)
-
+cor(Q_cor_df)
 ##consider those streams that are highly correlated with ST7 
 	#ST9 - ST7Lo 
 	#ST11D - ST7Lo
@@ -232,13 +232,6 @@ Q_cor_df <- data.frame(Q_cor)
 		#Q9_full <- data.frame(QP) 
 
 #adding in a season variable
-		
-summer9 <- 	ifelse(as.numeric(format(Q9_full$Pd, "%m")) >= 6 & as.numeric(format(Q9_full$Pd, "%m"))<= 9, 1, 0) 		 		
-
-Q9_full <- cbind(Q9_full, summer9)
-year9 <- as.numeric(format(Q9_full$Pd, "%y"))
-Q9_full <- cbind( Q9_full, year9)
-
 
 # #just check to make sure files are matched up right
 				 ggplot(Qw9, aes(x = Q.mod, y = Q_DS)) + geom_point()
@@ -324,14 +317,12 @@ ggplot(depths, aes(x = L_tempC, y = st9_depthm))+
 		stat_smooth(method = "lm")+
 		geom_abline(intercept = 0, slope = 1)
 		
-
- 
 #model selection to determine the best model
 	#Q <- Q[2:34,]
 	Q9_full[which(Q9_full$Q.mod >= 20),"Q.mod"] = Q9_full[which(Q9_full$Q.mod >= 20),"Q_US"]
 
 	Q9_full_mod = Q9_full[which(is.na(Q9_full$d9) == F),]
-	Q9_gm_mod <- lm(log(Q.mod) ~ log(d9), Q9_full_mod, na.action = "na.fail")
+	Q9_gm_mod <- lm(log(Q.mod) ~ log(d9)*temp_9, Q9_full_mod, na.action = "na.fail")
 	Q9_MS_mod <- dredge(Q9_gm_mod, extra = c("R^2", F = function(x) summary(x)$fstatistic[[1]]))
 
 	subset(Q9_MS_mod, delta < 5)
@@ -342,7 +333,7 @@ ggplot(depths, aes(x = L_tempC, y = st9_depthm))+
 	ggplot(Q9_full, aes(x =d9, y = temp_9)) +geom_point()
 hist(depths$st9_depthm)
 
-sm_rating9 <- lm(log(Q.mod) ~ log(d9), Q9_full_mod); summary(sm_rating9)
+sm_rating9 <- lm(log(Q.mod) ~ log(d9)+temp_9  , Q9_full_mod); summary(sm_rating9)
 sm_rating9_mod <- lm(log(Q.mod) ~ log(d9), Q9_full); summary(sm_rating9_mod)
 				
 # # 				
@@ -386,10 +377,10 @@ sm_rating9_mod <- lm(log(Q.mod) ~ log(d9), Q9_full); summary(sm_rating9_mod)
 	#merge new files	
 	depths_m <- depths
 	names(depths_m) <- c("time", "dL", "temp_L", "dH", "temp_H", "d9", "temp_9")#needs to be renamed so it matches the names in the equation.
-	depths_m$crummy = ifelse(depths_m$Q_mr >8, "C","G")
-
 	#predict Q
 	depths_m$Q_mr <- exp(predict(sm_rating9, depths_m))
+	hist(depths_m$Q_mr)
+	depths_m$crummy = ifelse(depths_m$Q_mr >8, "C","G")
 	
  write.csv(depths_m, file = "C:/Users/Jim/Documents/Projects/Iceland/Temp-Disch-Light/Working Q/depth_m5.csv")
 	
@@ -400,15 +391,15 @@ sm_rating9_mod <- lm(log(Q.mod) ~ log(d9), Q9_full); summary(sm_rating9_mod)
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q9_full_mod, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
-		ylab(expression(paste("Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
+		ylab(expression(paste("Q (L ", s^1,")")))#+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))
 		
 	ggplot(depths_m, aes(x = time, y = Q_mr)) +
 		geom_line(color = "blue", size = 0.25)+
 		geom_point(data =  Q9_full, aes(x = Pd, y = Q.mod), shape = 21, fill = "red")+
 		xlab("Date")+
 		ylab(expression(paste(log[10]," Q (L ", s^1,")")))+
-		scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
+		#scale_x_datetime(breaks = "6 months", labels = date_format("%b-%y"))+
 		scale_y_log10()
 	
 	#export data

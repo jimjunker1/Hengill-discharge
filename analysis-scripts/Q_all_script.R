@@ -41,7 +41,7 @@ presHver <- read.table("./stream-data/2451126_Hver.txt", header = T, sep = "\t",
 
 pres1 <- pres1[,1:4]
 ### bring in modeled light 
-source("./analysis-scripts/ModelingLight.R")
+#source("./analysis-scripts/ModelingLight.R")
 lightmod <- read.csv("./output-files/light-est_full.csv")
 
 lightmod$Pd <- as.POSIXct(lightmod$hour,format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
@@ -179,7 +179,6 @@ st17_tempC <- with(pres_allhr, zoo(st17_tempC, Pd))
 Hver_tempC <- with(pres_allhr, zoo(Hver_tempC, Pd))
 lightmod <- with(pres_allhr, zoo(cum.light, Pd))
 
-
 st1_depthm <- with(pres_allhr, zoo(st1_depthm, Pd))
 st7L_depthm <- with(pres_allhr, zoo(L_depthm, Pd))
 st7H_depthm <- with(pres_allhr, zoo(H_depthm, Pd))
@@ -272,6 +271,9 @@ Q6_full_mod <- Q6_full[!is.na(Q6_full$Q.mod),]
 sm_rating6 <- lm(log(Q.mod) ~ log(st6_depthm), Q6_full_mod); summary(sm_rating6)
 
 pres_allhr$st6_Q = exp(predict(sm_rating6, pres_allhr))
+
+ggplot(pres_allhr, aes(x = Pd, y = st6_Q)) + geom_point(size = 3)
+
 #ST7
 
 #ST8
@@ -296,6 +298,7 @@ sm_rating8 <- lm(log(Q.mod) ~ log(st8_depthm) + st8_tempC, Q8_full_mod); summary
 
 pres_allhr$st8_Q = exp(predict(sm_rating8, pres_allhr))
 
+ggplot(pres_allhr, aes(x = Pd, y = st8_Q)) + geom_point(size = 3)
 #ST9
 Q9 <- Q[which(Q$Qstream == "st9"),]
 Q9 <- Q9[!is.na(Q9$Q.mod),]
@@ -313,11 +316,14 @@ QP <- cbind(Qw9, st9_depthm = coredata(st9_depthm) [dx])
 Q9_full <- data.frame(QP)
 
 Q9_full[which(Q9_full$Q.mod >= 20),"Q.mod"] = Q9_full[which(Q9_full$Q.mod >= 20),"Q_US"]
-Q9_full_mod = Q9_full[which(is.na(Q9_full$d9) == F),]
+Q9_full_mod = Q9_full[which(is.na(Q9_full$st9_depthm) == F),]
 
 sm_rating9 <- lm(log(Q.mod) ~ log(st9_depthm) + st9_tempC  , Q9_full_mod); summary(sm_rating9)
 
 pres_allhr$st9_Q = exp(predict(sm_rating9, pres_allhr))
+
+ggplot(pres_allhr, aes(x = Pd, y = st9_Q)) + geom_point(size = 3)
+
 #ST11D
 Q11D <- Q[which(Q$Qstream == "st11L"),]
 Q11D <- Q11D[!is.na(Q11D$Q.mod),]
@@ -329,24 +335,28 @@ Q7 <- Q7[order(Q7$Pd),]
 Q7z <- with(Q7, zoo(Q.mod, Pd))
 
 f <-  function(u) which.min(abs(as.numeric(index(st11D_tempC)) - as.numeric(u)))
-ix <- vapply(index(st11D_tempC), f, integer(1))
+ix <- vapply(index(Q11Dz), f, integer(1))
 QP <- cbind(Q11D, st11D_tempC = coredata(st11D_tempC)[ix])
 Qw11D <- data.frame(QP)
 
 f <- function(u) which.min(abs(as.numeric(index(st11D_depthm)) - as.numeric(u)))
-dx <- sapply(index(Q11Dz), f)
+dx <- vapply(index(Q11Dz), f, integer(1))
 QP <- cbind(Qw11D, st11D_depthm = coredata(st11D_depthm) [dx])
 Q11D_full <- data.frame(QP)
 
-f <- function(u) which.min(abs(as.numeric(index(L_depthm)) - as.numeric(u)))
-dx <- sapply(index(Q11Dz), f)
-QP <- cbind(Q11D_full, L_depthm = coredata(L_dpethm) [dx])
+f <- function(u) which.min(abs(as.numeric(index(st7L_depthm)) - as.numeric(u)))
+dx <- vapply(index(Q11Dz), f, integer(1))
+QP <- cbind(Q11D_full, st7L_depthm = coredata(st7L_depthm) [dx])
 Q11D_full <- data.frame(QP)
 
 Q11D_full_mod <- Q11D_full[!is.na(Q11D_full$st11D_depthm),]
+Q11D_full_mod = Q11D_full_mod[-1,]
 
-sm_rating11D <- lm(log(Q.mod) ~ log(st11D_depthm) + log(L_depthm), Q11D_full_mod); summary(sm_rating11D)
+sm_rating11D <- lm(log(Q.mod) ~ log(st11D_depthm) + log(st7L_depthm), Q11D_full_mod); summary(sm_rating11D)
 
+pres_allhr$st11D_Q = exp(predict(sm_rating11D, depths_m))
+Q.fix  = which(pres_allhr$st11D_Q >= 15000)
+pres_allhr[Q.fix, "st11D_Q"] = NA
 #ST11U
 
 Q11U <- Q[which(Q$Qstream == "st11U"),]

@@ -88,20 +88,6 @@ pres14 = pres14[,c(5,3:4)]
 pres17 = pres17[,c(5,3:4)]
 presHver = presHver[,c(5,3:4)]
 
-pres1[which(as.numeric(format(pres1$Pd, "%y")) == 1),]
-pres5[which(as.numeric(format(pres5$Pd, "%y")) == 1),]
-pres6[which(as.numeric(format(pres6$Pd, "%y")) == 1),]
-presH[which(as.numeric(format(presH$Pd, "%y")) == 1),]
-presL[which(as.numeric(format(presL$Pd, "%y")) == 1),]
-pres8[which(as.numeric(format(pres8$Pd, "%y")) == 1),]
-pres9[which(as.numeric(format(pres9$Pd, "%y")) == 1),]
-pres11D[which(as.numeric(format(pres11D$Pd, "%y")) == 1),]
-pres11U[which(as.numeric(format(pres11U$Pd, "%y")) == 1),]
-pres13[which(as.numeric(format(pres13$Pd, "%y")) == 1),]
-pres14[which(as.numeric(format(pres14$Pd, "%y")) == 1),]
-pres17[which(as.numeric(format(pres17$Pd, "%y")) == 1),]
-presHver[which(as.numeric(format(presHver$Pd, "%y")) == 1),]
-
 ### this for all the streams to get a single large df of all pressures
 mylist = list(pres1, pres5, pres6, presL, presH, pres8, pres9, pres11D,
             pres11U, pres13, pres14, pres17, presHver)
@@ -117,8 +103,6 @@ colnames(pres_all) = c("Pd", "st1_tempC", "st1_depthm", "st5_tempC", "st5_depthm
                        "st17_tempC", "st17_depthm", "Hver_tempC", "Hver_depthm")
 rm(mylist)
 ### 
-pres_all = pres_all[-which(as.numeric(format(pres_all$Pd, "%y")) == "1"),]
-#get rid of weird 2001 year
 ## 
 
 pres_allhr = aggregate(pres_all[c("st1_tempC", "st1_depthm", "st5_tempC", "st5_depthm", 
@@ -354,9 +338,12 @@ Q11D_full_mod = Q11D_full_mod[-1,]
 
 sm_rating11D <- lm(log(Q.mod) ~ log(st11D_depthm) + log(st7L_depthm), Q11D_full_mod); summary(sm_rating11D)
 
-pres_allhr$st11D_Q = exp(predict(sm_rating11D, depths_m))
+pres_allhr$st11D_Q = exp(predict(sm_rating11D, pres_allhr))
 Q.fix  = which(pres_allhr$st11D_Q >= 15000)
 pres_allhr[Q.fix, "st11D_Q"] = NA
+
+ggplot(pres_allhr, aes(x = Pd, y = st11D_Q)) + geom_point(size = 3)
+
 #ST11U
 
 Q11U <- Q[which(Q$Qstream == "st11U"),]
@@ -370,49 +357,71 @@ Q17 <- Q17[order(Q17$Pd),]
 Q17z <- with(Q17, zoo(Q.mod, Pd))
 
 f <- function(u) which.min(abs(as.numeric(index(st11U_depthm)) - as.numeric(u)))
-dx <- sapply(index(Q11Uz), f)
-QP <- cbind(Q11Uz, d17 = coredata(pres_all$st11U_depthm) [dx])
+dx <- vapply(index(Q11Uz), f, integer(1))
+QP <- cbind(Q11U, st11U_depthm = coredata(st11U_depthm) [dx])
 Q11U_full <- data.frame(QP)
-Q11U_full_mod <- Q11U_full[!is.na(Q11U_full$d17),]
 
-sm_rating11U <- lm(log(Q11Uz) ~ log(d17), Q11U_full); summary(sm_rating11U)
+f <- function(u) which.min(abs(as.numeric(index(st17_depthm)) - as.numeric(u)))
+dx <- vapply(index(Q11Uz), f, integer(1))
+QP <- cbind(Q11U_full, st17_depthm = coredata(st17_depthm) [dx])
+Q11U_full <- data.frame(QP)
 
+Q11U_full_mod <- Q11U_full[!is.na(Q11U_full$st11U_depthm),]
+
+sm_rating11U <- lm(log(Q.mod) ~ log(st11U_depthm), Q11U_full_mod); summary(sm_rating11U)
+
+Q11U_full_mod2 = Q11U_full[is.na(Q11U_full$st11U_depthm) & !is.na(Q11U_full$st17_depthm),]
+
+sm_rating11U2 = lm(log(Q.mod)~ log(st17_depthm), Q11U_full_mod2);summary(sm_rating11U2)
+
+pres_allhr$st11U_Q = NA
+
+depths_d11 = which(!is.na(pres_allhr$st11U_depthm))
+depths_d17 = which(is.na(pres_allhr$st11U_depthm) & !is.na(pres_allhr$st17_depthm))
+
+pres_allhr[depths_d11, "st11U_Q"] = exp(predict(sm_rating11U, pres_allhr[depths_d11,]))
+pres_allhr[depths_d17, "st11U_Q"] = exp(predict(sm_rating11U2, pres_allhr[depths_d17,]))                   
+                   
+ggplot(pres_allhr, aes(x = Pd, y = st11U_Q)) + geom_point(size = 3)
+
+Q.fix = 34273:34279
+pres_allhr[Q.fix, "st11U_Q"] = NA
 #ST13
 
+######## For ST13 use the Q.mod for the measures ######
 Q13 <- Q[which(Q$Qstream == "st13"),]
-Q13 <- Q13[!is.na(Q13$Q.mod),]
-Q13 <- Q13[order(Q13$Pd),]
-Q13z <- with(Q13, zoo(Q.mod, Pd))
+Q13_full <- Q13[!is.na(Q13$Q.mod),]
 
-f <-  function(u) which.min(abs(as.numeric(index(pres_all$st13_tempC)) - as.numeric(u)))
-ix <- vapply(index(Q13z), f, integer(1))
-QP <- cbind(Q13, temp_13 = coredata(temp_13)[ix])
-Qw13 <- data.frame(QP)
+hist(Q13_full$Q.mod)
+median(Q13_full$Q.mod, na.rm = T) 
+mean(Q13_full$Q.mod, na.rm = T) 
+sd(Q13_full$Q.mod, na.rm = T)
 
-f <- function(u) which.min(abs(as.numeric(index(pres_all$st13_depthm)) - as.numeric(u)))
-dx <- sapply(index(Q13z), f)
-QP <- cbind(Qw13, st13_depthm = coredata(st13_depthm) [dx])
-Q13_full <- data.frame(QP)
+sd(Q13_full$Q.mod)/mean(Q13_full$Q.mod) 
 
-sm_rating13 <- lm(log(Q.mod) ~ log(st13_depthm), Q13_full); summary(sm_rating13)
-
+pres_allhr$st13_Q = "14.6 +/-1.6*"
+###### full code in Rating-Curve-Scripts folder if needed #####
 #ST14
 Q14 <- Q[which(Q$Qstream == "st14"),]
 Q14 <- Q14[!is.na(Q14$Q.mod),]
 Q14 <- Q14[order(Q14$Pd),]
 Q14z <- with(Q14, zoo(Q.mod, Pd))
 
-f <-  function(u) which.min(abs(as.numeric(index(pres_all$st14_tempC)) - as.numeric(u)))
+f <-  function(u) which.min(abs(as.numeric(index(st14_tempC)) - as.numeric(u)))
 ix <- vapply(index(Q14z), f, integer(1))
-QP <- cbind(Q14, temp_14 = coredata(temp_14)[ix])
+QP <- cbind(Q14, st14_tempC = coredata(st14_tempC)[ix])
 Qw14 <- data.frame(QP)
 
-f <- function(u) which.min(abs(as.numeric(index(pres_all$st14_depthm)) - as.numeric(u)))
-dx <- sapply(index(Q14z), f)
+f <- function(u) which.min(abs(as.numeric(index(st14_depthm)) - as.numeric(u)))
+dx <- vapply(index(Q14z), f, integer(1))
 QP <- cbind(Qw14, st14_depthm = coredata(st14_depthm) [dx])
 Q14_full <- data.frame(QP)
 
-sm_rating14 <- lm(log(Q.mod) ~ log(st14_depthm), Q14_full); summary(sm_rating14)
+sm_rating14 <- lm(log(Q.mod) ~ log(st14_depthm) + st14_tempC, Q14_full); summary(sm_rating14)
+
+pres_allhr$st14_Q = exp(predict(sm_rating14, pres_allhr))
+
+ggplot(pres_allhr, aes(x = Pd, y = st14_Q)) + geom_point(size = 3)
 
 #ST17
 Q17 <- Q[which(Q$Qstream == "st17"),]
@@ -420,264 +429,59 @@ Q17 <- Q17[!is.na(Q17$Q.mod),]
 Q17 <- Q17[order(Q17$Pd),]
 Q17z <- with(Q17, zoo(Q.mod, Pd))
 
-f <-  function(u) which.min(abs(as.numeric(index(pres_all$st17_tempC)) - as.numeric(u)))
+f <-  function(u) which.min(abs(as.numeric(index(st17_tempC)) - as.numeric(u)))
 ix <- vapply(index(Q17z), f, integer(1))
-QP <- cbind(Q17, temp_17 = coredata(temp_17)[ix])
+QP <- cbind(Q17, st17_tempC = coredata(st17_tempC)[ix])
 Qw17 <- data.frame(QP)
 
-f <- function(u) which.min(abs(as.numeric(index(pres_all$st17_depthm)) - as.numeric(u)))
-dx <- sapply(index(Q17z), f)
+f <- function(u) which.min(abs(as.numeric(index(st17_depthm)) - as.numeric(u)))
+dx <- vapply(index(Q17z), f, integer(1))
 QP <- cbind(Qw17, st17_depthm = coredata(st17_depthm) [dx])
 Q17_full <- data.frame(QP)
+
 Q17_full_mod <- Q17_full[!is.na(Q17_full$st17_depthm),]
 
-sm_rating17_mod <- lm(log(Q.mod) ~ log(d17), Q17_full_mod); summary(sm_rating17_mod)
+sm_rating17 <- lm(log(Q.mod) ~ log(st17_depthm), Q17_full_mod); summary(sm_rating17_mod)
+
+pres_allhr$st17_Q = exp(predict(sm_rating17, pres_allhr))
+
+ggplot(pres_allhr, aes(x = Pd, y = st17_Q)) + geom_point(size = 3)
 
 #HVER
 
-QHver <- which(Q$Qstream == "hver")
-QHver <- QHver.fix[!is.na(QHver.fix$Q.mod),]
-QHver <- QHver.fix[order(QHver$Pd),]
+QHver <- Q[which(Q$Qstream == "hver"),]
+QHver <- QHver[!is.na(QHver$Q.mod),]
+QHver <- QHver[order(QHver$Pd),]
 QHverz <- with(QHver, zoo(Q.mod, Pd))
 
-f <-  function(u) which.min(abs(as.numeric(index(pres_all$Hver_tempC)) - as.numeric(u)))
-ix <- vapply(index(Hver_tempC), f, integer(1))
+f <-  function(u) which.min(abs(as.numeric(index(Hver_tempC)) - as.numeric(u)))
+ix <- vapply(index(QHverz), f, integer(1))
 QP <- cbind(QHver, Hver_tempC = coredata(Hver_tempC)[ix])
 QwHver <- data.frame(QP)		
 
-f <- function(u) which.min(abs(as.numeric(index(pres_all$Hver_depthm)) - as.numeric(u)))
-dx <- sapply(index(QHverz), f)
+f <- function(u) which.min(abs(as.numeric(index(Hver_depthm)) - as.numeric(u)))
+dx <- vapply(index(QHverz), f, integer(1))
 QP <- cbind(QwHver, Hver_depthm = coredata(Hver_depthm) [dx])
 QHver_full <- data.frame(QP)
-QHver_full_mod <- QHver_full[!is.na(QHver_full$Hver_depthm),]
 
-sm_ratingHver <- lm(log(Q.mod) ~ log(Hver_depthm) * temp_Hver, QHver_full_mod); summary(sm_ratingHver)
+QHver_full <- QHver_full[!is.na(QHver_full$Hver_depthm),]
+
+sm_ratingHver <- lm(log(Q.mod) ~ log(Hver_depthm) + Hver_tempC, QHver_full); summary(sm_ratingHver)
+
+pres_allhr$Hver_Q = exp(predict(sm_ratingHver, pres_allhr))
+
+ggplot(pres_allhr, aes(x = Pd, y = Hver_Q)) + geom_point(size = 3)
 
 ###########################End of stream import#########################################################
 
 ################################Building the final discharge file###################
 
-depths$Q1 <- exp(predict(sm_rating1, depths))
-depths$Q5 <- exp(predict(sm_rating5_mod, depths))
-depths$Q6 <- exp(predict(sm_rating6, depths))
-depths$Q8 <- exp(predict(sm_rating8, depths))
-depths$Q9 <- exp(predict(sm_rating9, depths))
-depths$Q11D <- exp(predict(sm_rating11D, depths))
-depths$Q11U <- exp(predict(sm_rating11U, depths))
-depths$Q13 <- exp(predict(sm_rating13, depths))
-depths$Q14 <- exp(predict(sm_rating14, depths))
-depths$Q17 <- exp(predict(sm_rating17, depths))
-depths$QHVER <- exp(predict(sm_ratingHver, depths))
+write.csv(pras_allhr, file = "./output-files/Q_all_fin.csv")
 
 
-write.csv(Q_all, file = "./output-files/Q_all_fin.csv")
-
-	#adding Q predicted estimates to Qw file	
-st7_Qw2 <- read.csv("~/Dropbox/JMH_dropbox/stephanson2/Projects/Cross Postdoc/Data/NaCl & nutrient slugs/rating curves/summary_data/st7_Qw2.csv")
-
-st7_Qw2$Q_DS_predicted <- exp(predict(sm_rating, st7_Qw2))
-
-write.csv(st7_Qw2, file = "~/Dropbox/JMH_dropbox/stephanson2/Projects/Cross Postdoc/Data/NaCl & nutrient slugs/rating curves/summary_data/st7_Qw3.csv")
-	
 #################################################################################################################################################################
 #Working Log
 #Feb-6-2015. added full date-time file and merged to get 15min intervals from Jul 2010
 
 
-###### Old code. Can clean once df is complete ######
-mylist <- list(pres1, datetime)
-pres1 <- do.call(rbind.fill, mylist)
 
-mylist <- list(presL, datetime)
-presL <- do.call(rbind.fill, mylist)
-
-mylist <- list(presH, datetime)
-presH <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres5, datetime)
-pres5 <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres6, datetime)
-pres6 <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres8, datetime)
-pres8 <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres9, datetime)
-pres9 <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres11D, datetime)
-pres11D <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres11U, datetime)
-pres11U <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres13, datetime)
-pres13 <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres14, datetime)
-pres14 <- do.call(rbind.fill, mylist)
-
-mylist <- list(pres17, datetime)
-pres17 <- do.call(rbind.fill, mylist)
-
-mylist <- list(presHver, datetime)
-presHver <- do.call(rbind.fill, mylist)
-
-#Make hourly means
-
-
-presLhr_d <- data.frame(presL$Pd, presL$Depthm, presL$TempC)
-presHhr_d <- data.frame(presH$Pd, presH$Depthm, presH$TempC)
-pres1hr_d <- data.frame(pres1$Pd, pres1$Depthm, pres1$TempC)
-pres5hr_d <- data.frame(pres5$Pd, pres5$Depthm, pres5$TempC)
-pres6hr_d <- data.frame(pres6$Pd, pres6$Depthm, pres6$TempC)
-pres8hr_d <- data.frame(pres8$Pd, pres8$Depthm, pres8$TempC)
-pres9hr_d <- data.frame(pres9$Pd, pres9$Depthm, pres9$TempC)
-pres11Dhr_d <- data.frame(pres11D$Pd, pres11D$Depthm, pres11D$TempC)
-pres11Uhr_d <- data.frame(pres11U$Pd, pres11U$Depthm, pres11U$TempC)
-pres13hr_d <- data.frame(pres13$Pd, pres13$Depthm, pres13$TempC)
-pres14hr_d <- data.frame(pres14$Pd, pres14$Depthm, pres14$TempC)
-pres17hr_d <- data.frame(pres17$Pd, pres17$Depthm, pres17$TempC)
-presHverhr_d <- data.frame(presHver$Pd, presHver$Depthm, presHver$TempC)
-
-
-names(presLhr_d) <- c("time", "st7L_depthm", "st7L_tempC")
-names(presHhr_d) <- c("time", "st7H_depthm", "st7H_tempC")
-names(pres1hr_d) <- c("time", "st1_depthm", "st1_tempC")
-names(pres5hr_d) <- c("time", "st5_depthm", "st5_tempC")
-names(pres6hr_d) <- c("time", "st6_depthm", "st6_tempC")
-names(pres8hr_d) <- c("time", "st8_depthm", "st8_tempC")
-names(pres9hr_d) <- c("time", "st9_depthm", "st9_tempC")
-names(pres11Dhr_d) <- c("time", "st11D_depthm", "st11D_tempC")
-names(pres11Uhr_d) <- c("time", "st11U_depthm", "st11U_tempC")
-names(pres13hr_d) <- c("time", "st13_depthm", "st13_tempC")
-names(pres14hr_d) <- c("time", "st14_depthm", "st14_tempC")
-names(pres17hr_d) <- c("time", "st17_depthm", "st17_tempC")
-names(presHverhr_d) <- c("time", "Hver_depthm", "Hver_tempC")
-
-##First merge all the depth data by time
-
-presLhr <- aggregate(presLhr_d[c("st7L_depthm", "st7L_tempC")],
-                     list(hour = cut(presLhr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-presHhr <- aggregate(presHhr_d[c("st7H_depthm", "st7H_tempC")],
-                     list(hour = cut(presHhr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-pres1hr <- aggregate(pres1hr_d[c("st1_depthm", "st1_tempC")],
-                     list(hour = cut(pres1hr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-pres5hr <- aggregate(pres5hr_d[c("st5_depthm", "st5_tempC")],
-                     list(hour = cut(pres5hr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-pres6hr <- aggregate(pres6hr_d[c("st6_depthm", "st6_tempC")],
-                     list(hour = cut(pres6hr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-pres8hr <- aggregate(pres8hr_d[c("st8_depthm", "st8_tempC")],
-                     list(hour = cut(pres8hr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-pres9hr <- aggregate(pres9hr_d[c("st9_depthm", "st9_tempC")],
-                     list(hour = cut(pres9hr_d$time, breaks = "hour")),
-                     mean, na.rm = TRUE)
-
-pres11Dhr <- aggregate(pres11Dhr_d[c("st11D_depthm", "st11D_tempC")],
-                       list(hour = cut(pres11Dhr_d$time, breaks = "hour")),
-                       mean, na.rm = TRUE)
-
-pres11Uhr <- aggregate(pres11Uhr_d[c("st11U_depthm", "st11U_tempC")],
-                       list(hour = cut(pres11Uhr_d$time, breaks = "hour")),
-                       mean, na.rm = TRUE)
-
-pres13hr <- aggregate(pres13hr_d[c("st13_depthm", "st13_tempC")],
-                      list(hour = cut(pres13hr_d$time, breaks = "hour")),
-                      mean, na.rm = TRUE)
-
-pres14hr <- aggregate(pres14hr_d[c("st14_depthm", "st14_tempC")],
-                      list(hour = cut(pres14hr_d$time, breaks = "hour")),
-                      mean, na.rm = TRUE)
-
-pres17hr <- aggregate(pres17hr_d[c("st17_depthm", "st17_tempC")],
-                      list(hour = cut(pres17hr_d$time, breaks = "hour")),
-                      mean, na.rm = TRUE)
-
-presHverhr <- aggregate(presHverhr_d[c("Hver_depthm", "Hver_tempC")],
-                        list(hour = cut(presHverhr_d$time, breaks = "hour")),
-                        mean, na.rm = TRUE)
-#convert to POSIXct
-presLhr$time <- as.POSIXct(presLhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-presHhr$time <- as.POSIXct(presHhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres1hr$time <- as.POSIXct(pres1hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres5hr$time <- as.POSIXct(pres5hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres6hr$time <- as.POSIXct(pres6hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres8hr$time <- as.POSIXct(pres8hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres9hr$time <- as.POSIXct(pres9hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres11Dhr$time <- as.POSIXct(pres11Dhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres11Uhr$time <- as.POSIXct(pres11Uhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres13hr$time <- as.POSIXct(pres13hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres14hr$time <- as.POSIXct(pres14hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-pres17hr$time <- as.POSIXct(pres17hr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-presHverhr$time <- as.POSIXct(presHverhr$hour, format = "%Y-%m-%d %H:%M:%S", tz ="UTC")
-
-#
-
-# RUNNING ONE TIME, THEN EXPORTING TO GET PT TEMPS
-# #get temp at times of slugs
-# #create zoo objects
-
-temp_L <- with(presLhr, zoo(st7L_tempC, time))
-temp_H <- with(presHhr, zoo(st7H_tempC, time))
-temp_1 <- with(pres1hr, zoo(st1_tempC, time))
-temp_5 <- with(pres5hr, zoo(st5_tempC, time))
-temp_6 <- with(pres6hr, zoo(st6_tempC, time))
-temp_8 <- with(pres8hr, zoo(st8_tempC, time))
-temp_9 <- with(pres9hr, zoo(st9_tempC, time))
-temp_11D <- with(pres11Dhr, zoo(st11D_tempC, time))
-temp_11U <- with(pres11Uhr, zoo(st11U_tempC, time))
-temp_13 <- with(pres13hr, zoo(st13_tempC, time))
-temp_14 <- with(pres14hr, zoo(st14_tempC, time))
-temp_17 <- with(pres17hr, zoo(st17_tempC, time))
-temp_Hver <- with(presHverhr, zoo(Hver_tempC, time))
-lightmod <- with(lightmodhr_d, zoo(cum.light, time))
-
-
-d1 <- with(pres1hr, zoo(st1_depthm, time))
-dL <- with(presLhr, zoo(st7L_depthm, time))
-dH <- with(presHhr, zoo(st7H_depthm, time))
-d5 <- with(pres5hr, zoo(st5_depthm, time))
-d6 <- with(pres6hr, zoo(st6_depthm, time))
-d8 <- with(pres8hr, zoo(st8_depthm, time))
-d9 <- with(pres9hr, zoo(st9_depthm, time))
-d11D <- with(pres11Dhr, zoo(st11D_depthm, time))
-d11U <- with(pres11Uhr, zoo(st11U_depthm, time))
-d13 <- with(pres13hr, zoo(st13_depthm, time))
-d14 <- with(pres14hr, zoo(st14_depthm, time))
-d17 <- with(pres17hr, zoo(st17_depthm, time))
-dHver <- with(presHverhr, zoo(Hver_depthm, time))
-
-depths <- merge(presLhr[,c(2,4)], presHhr[,c(2,4)], by = "time", all = TRUE)
-depths <- merge(depths, pres1hr[,c(2,4)], by = "time", all = T)
-names(depths) <- c("time","dL", "dH", "d1")
-depths <- merge(depths, pres5hr[,c(2,4)], by = "time", all = T)
-depths <- merge(depths, pres6hr[,c(2,4)], by = "time", all = T)
-names(depths) <- c("time","dL", "dH", "d1", "d5", "d6")
-depths <- merge(depths, pres8hr[,c(2:4)], by = "time", all = T)
-depths <- merge(depths, pres9hr[,c(2,4)], by = "time", all = T)
-names(depths) <- c("time","dL", "dH", "d1", "d5", "d6", "d8", "temp_8", "d9")
-depths <- merge(depths, pres11Dhr[,c(2,4)], by = "time", all = T)
-depths <- merge(depths, pres11Uhr[,c(2,4)], by = "time", all = T)
-names(depths) <- c("time","dL", "dH", "d1", "d5", "d6", "d8", "temp_8", "d9", "d11D", "d11U")
-depths <- merge(depths, pres13hr[,c(2,4)], by = "time", all = T)
-depths <- merge(depths, pres14hr[,c(2,4)], by = "time", all = T)
-names(depths) <- c("time","dL", "dH", "d1", "d5", "d6", "d8", "temp_8", "d9", "d11D", "d11U", 
-                   "d13", "d14")
-depths <- merge(depths, pres17hr[,c(2,4)], by = "time", all = T)
-depths <- merge(depths, presHverhr[,c(2:4)], by = "time", all = T)
-names(depths) <- c("time","dL", "dH", "d1", "d5", "d6", "d8", "temp_8", "d9", "d11D", "d11U", 
-                   "d13", "d14", "d17", "dHver", "temp_Hver")
-head(depths)

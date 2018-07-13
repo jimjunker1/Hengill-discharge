@@ -308,7 +308,7 @@ pres_allhr$st9_Q = exp(predict(sm_rating9, pres_allhr))
 
 ggplot(pres_allhr, aes(x = Pd, y = st9_Q)) + geom_point(size = 3)
 
-#ST11D
+#ST11L
 Q11D <- Q[which(Q$Qstream == "st11L"),]
 Q11D <- Q11D[!is.na(Q11D$Q.mod),]
 Q11D <- Q11D[order(Q11D$Pd),]
@@ -338,11 +338,11 @@ Q11D_full_mod = Q11D_full_mod[-1,]
 
 sm_rating11D <- lm(log(Q.mod) ~ log(st11D_depthm) + log(st7L_depthm), Q11D_full_mod); summary(sm_rating11D)
 
-pres_allhr$st11D_Q = exp(predict(sm_rating11D, pres_allhr))
-Q.fix  = which(pres_allhr$st11D_Q >= 15000)
-pres_allhr[Q.fix, "st11D_Q"] = NA
+pres_allhr$st11L_Q = exp(predict(sm_rating11D, pres_allhr))
+Q.fix  = which(pres_allhr$st11L_Q >= 15000)
+pres_allhr[Q.fix, "st11L_Q"] = NA
 
-ggplot(pres_allhr, aes(x = Pd, y = st11D_Q)) + geom_point(size = 3)
+ggplot(pres_allhr, aes(x = Pd, y = st11L_Q)) + geom_point(size = 3)
 
 #ST11U
 
@@ -441,7 +441,7 @@ Q17_full <- data.frame(QP)
 
 Q17_full_mod <- Q17_full[!is.na(Q17_full$st17_depthm),]
 
-sm_rating17 <- lm(log(Q.mod) ~ log(st17_depthm), Q17_full_mod); summary(sm_rating17_mod)
+sm_rating17 <- lm(log(Q.mod) ~ log(st17_depthm), Q17_full_mod); summary(sm_rating17)
 
 pres_allhr$st17_Q = exp(predict(sm_rating17, pres_allhr))
 
@@ -476,9 +476,9 @@ ggplot(pres_allhr, aes(x = Pd, y = Hver_Q)) + geom_point(size = 3)
 
 ################################Building the final discharge file###################
 
-write.csv(pras_allhr, file = "./output-files/Q_all_fin.csv")
+write.csv(pres_allhr, file = "./output-files/Q_all_fin.csv")
 
-
+rm(list = ls()[!ls() %in% c("pres_allhr", "Q")])
 #################################################################################################################################################################
 #Working Log
 #Feb-6-2015. added full date-time file and merged to get 15min intervals from Jul 2010

@@ -1,5 +1,4 @@
 #Script for modeling width, depth by discharge relationships ##
-library(stringr)
 ##load source of Q_all script 
 source("./analysis-scripts/Q_all_script.R")
 
@@ -15,19 +14,12 @@ LWAD$Pd <- as.POSIXct(paste(LWAD$date), format = "%m/%d/%y", tz = "UTC")
 
 Q$Pd_d = as.POSIXct(strftime(Q$Pd), format = "%Y-%m-%d", tz = "UTC")
 
-#Q_all <- read.csv("./stream-data/Q_all_fin.csv", T)
-
-#convert times to posix objects
-#Q$Pd <- as.POSIXct(paste(Q$Qdate, Q$Qtime), format = "%m/%d/%y %H:%M:%S", tz = "UTC")
-#Q_all$Pd <- as.POSIXct(paste(Q_all$Pd), format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
-#remove ST7 and OH2
-
 ##aggregating pres_allhr data to day so can line up with LWAD summary
 
 pres_alld = aggregate(pres_allhr[c(2:dim(pres_allhr)[2])], 
                        list(Pd = cut(pres_allhr$Pd, breaks = "day")),
                        mean, na.rm = T)
-pres_alld$Pd = as.POSIXct(pres_alld$Pd,format = "%Y-%m-%d")
+pres_alld$Pd = as.POSIXct(pres_alld$Pd,format = "%Y-%m-%d", tz = "UTC")
 
 ## zoo objects of all streams to match with LWAD summary
 
@@ -61,7 +53,7 @@ st5_Q <- with(pres_alld, zoo(st5_Q, Pd))
 st6_Q <- with(pres_alld, zoo(st6_Q, Pd))
 st8_Q <- with(pres_alld, zoo(st8_Q, Pd))
 st9_Q <- with(pres_alld, zoo(st9_Q, Pd))
-st11L_Q <- with(pres_alld, zoo(st11D_Q, Pd))
+st11L_Q <- with(pres_alld, zoo(st11L_Q, Pd))
 st11U_Q <- with(pres_alld, zoo(st11U_Q, Pd))
 st13_Q <- with(pres_alld, zoo(st13_Q, Pd))
 st14_Q <- with(pres_alld, zoo(st14_Q, Pd))
@@ -332,17 +324,18 @@ w_rating17 = 315+18220000^(st17$Q.mod/1000)#use this
 w_ratingHver = 140*hver$Q.mod/(5+hver$Q.mod)#use this 
 
 ###Travel Time
+#Need to build models all in m3/s so can use length/width to get depth. 
 
-tt_rating1 <- lm(log(tt.s)~log(Q.mod), data = st1);summary(st1tt.lm)
+tt_rating1 <- lm(log(tt.s)~log(Q.mod/1000), data = st1);summary(st1tt.lm)
 st5Q = Q[which(Q$Qstream == "st5"),]
 st5Q = st5Q[-which(st5Q$travel_time_secs >= 450),]
 st5Q= st5Q[-3,]
-tt_rating5 <- lm(travel_time_secs~Q.mod, data = st5Q);summary(st5tt.lm)
+tt_rating5 <- lm(travel_time_secs~(Q.mod/1000), data = st5Q);summary(st5tt.lm)
 st6Q = Q[which(Q$Qstream == "st6"),]
-tt_rating6 <- lm(log(travel_time_secs)~log(Q.mod), data = st6Q); summary(st6tt.lm)
+tt_rating6 <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st6Q); summary(st6tt.lm)
 st8Q = Q[which(Q$Qstream == "st8"),]
 st8Q <- st8Q[-which(st8Q$Q.mod > 40 | st8Q$travel_time_secs >= 230),]
-tt_rating8<- lm(log(travel_time_secs)~Q.mod, data= st8Q);summary(st8tt.lm)
+tt_rating8<- lm(log(travel_time_secs)~Q.mod/1000, data= st8Q);summary(st8tt.lm)
 st9Q = Q[which(Q$Qstream == "st9"),]
 tt_rating9 <- lm(log(travel_time_secs)~log(Q.mod), data= st9Q);summary(st9tt.lm)
 st11LQ = Q[which(Q$Qstream == "st11L"),]

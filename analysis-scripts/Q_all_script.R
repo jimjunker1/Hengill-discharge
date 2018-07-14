@@ -6,15 +6,13 @@
 ##################### Change computer clock to Iceland time UCT  ############################
 
 #load libraries
+library(plyr)
 library(tidyverse)
-library(ggplot2)
 library(chron)
 library(gridExtra)
 library(zoo)
 library(scales)
 library(GGally)
-library(plyr)
-library(dplyr)
 library(data.table)
 library(corrplot)
 library(lubridate)
@@ -32,7 +30,7 @@ pres5 <- read.table("./stream-data/9736061_ST5.txt", header = T, sep = "\t", quo
 pres6 <- read.table("./stream-data/9736057_ST6.txt", header = T, sep = "\t", quote="")
 pres8 <- read.table("./stream-data/9736058_ST8.txt", header = T, sep = "\t", quote="")
 pres9 <- read.table("./stream-data/9736054_ST9.txt", header = T, sep = "\t", quote="")
-pres11D <- read.table("./stream-data/9736055_ST11L.txt", header = T, sep = "\t", quote="")
+pres11L <- read.table("./stream-data/9736055_ST11L.txt", header = T, sep = "\t", quote="")
 pres11U <- read.table("./stream-data/2451129_ST11U.txt", header = T, sep = "\t", quote="")
 pres13 <- read.table("./stream-data/9736053_ST13.txt", header = T, sep = "\t", quote="")
 pres14 <- read.table("./stream-data/9736060_ST14.txt", header = T, sep = "\t", quote="")
@@ -65,7 +63,7 @@ pres5$Pd <- as.POSIXct(paste(pres5$Date, pres5$Time), format = "%m/%d/%y %H:%M:%
 pres6$Pd <- as.POSIXct(paste(pres6$Date, pres6$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres8$Pd <- as.POSIXct(paste(pres8$Date, pres8$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres9$Pd <- as.POSIXct(paste(pres9$Date, pres9$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
-pres11D$Pd <- as.POSIXct(paste(pres11D$Date, pres11D$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
+pres11L$Pd <- as.POSIXct(paste(pres11L$Date, pres11L$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres11U$Pd <- as.POSIXct(paste(pres11U$Date, pres11U$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres13$Pd <- as.POSIXct(paste(pres13$Date, pres13$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
 pres14$Pd <- as.POSIXct(paste(pres14$Date, pres14$Time), format = "%m/%d/%y %H:%M:%S", tz ="UTC")
@@ -81,7 +79,7 @@ pres5 = pres5[,c(5,3:4)]
 pres6 = pres6[,c(5,3:4)]
 pres8 = pres8[,c(5,3:4)]
 pres9 = pres9[,c(5,3:4)]
-pres11D = pres11D[,c(5,3:4)]
+pres11L = pres11L[,c(5,3:4)]
 pres11U = pres11U[,c(5,3:4)]
 pres13 = pres13[,c(5,3:4)]
 pres14 = pres14[,c(5,3:4)]
@@ -89,7 +87,7 @@ pres17 = pres17[,c(5,3:4)]
 presHver = presHver[,c(5,3:4)]
 
 ### this for all the streams to get a single large df of all pressures
-mylist = list(pres1, pres5, pres6, presL, presH, pres8, pres9, pres11D,
+mylist = list(pres1, pres5, pres6, presL, presH, pres8, pres9, pres11L,
             pres11U, pres13, pres14, pres17, presHver)
 
 pres_all = Reduce(function(df1, df2) merge(df1, df2, by = "Pd", all = T), mylist)
@@ -125,7 +123,7 @@ pres_allhr = merge(pres_allhr, lightmodhr_d, by = "Pd", all = T)
 #load data
 #load(	"~/Projects/Iceland/Temp-Disch-Light/Stream Discharge/All Q/all_streams.RData")
 
-#names(depths) <- c("time", "dL", "dH", "d1", "d5", "d6", "d8", "d9", "d11D", "d11U", "d13", "d14", "d17", "dHver")
+#names(depths) <- c("time", "dL", "dH", "d1", "d5", "d6", "d8", "d9", "d11L", "d11U", "d13", "d14", "d17", "dHver")
 Q <- read.csv("./stream-data/Q_data_summary_working.csv")
 Q$Pd <- as.POSIXct(paste(Q$Qdate, Q$Qtime), format = "%m/%d/%y %H:%M:%S", tz = "UTC")
 Q <- Q[!is.na(Q$Pd),]
@@ -155,7 +153,7 @@ st5_tempC <- with(pres_allhr, zoo(st5_tempC, Pd))
 st6_tempC <- with(pres_allhr, zoo(st6_tempC, Pd))
 st8_tempC <- with(pres_allhr, zoo(st8_tempC, Pd))
 st9_tempC <- with(pres_allhr, zoo(st9_tempC, Pd))
-st11D_tempC <- with(pres_allhr, zoo(st11L_tempC, Pd))
+st11L_tempC <- with(pres_allhr, zoo(st11L_tempC, Pd))
 st11U_tempC <- with(pres_allhr, zoo(st11U_tempC, Pd))
 st13_tempC <- with(pres_allhr, zoo(st13_tempC, Pd))
 st14_tempC <- with(pres_allhr, zoo(st14_tempC, Pd))
@@ -170,7 +168,7 @@ st5_depthm <- with(pres_allhr, zoo(st5_depthm, Pd))
 st6_depthm <- with(pres_allhr, zoo(st6_depthm, Pd))
 st8_depthm <- with(pres_allhr, zoo(st8_depthm, Pd))
 st9_depthm <- with(pres_allhr, zoo(st9_depthm, Pd))
-st11D_depthm <- with(pres_allhr, zoo(st11L_depthm, Pd))
+st11L_depthm <- with(pres_allhr, zoo(st11L_depthm, Pd))
 st11U_depthm <- with(pres_allhr, zoo(st11U_depthm, Pd))
 st13_depthm <- with(pres_allhr, zoo(st13_depthm, Pd))
 st14_depthm <- with(pres_allhr, zoo(st14_depthm, Pd))
@@ -309,36 +307,36 @@ pres_allhr$st9_Q = exp(predict(sm_rating9, pres_allhr))
 ggplot(pres_allhr, aes(x = Pd, y = st9_Q)) + geom_point(size = 3)
 
 #ST11L
-Q11D <- Q[which(Q$Qstream == "st11L"),]
-Q11D <- Q11D[!is.na(Q11D$Q.mod),]
-Q11D <- Q11D[order(Q11D$Pd),]
-Q11Dz <- with(Q11D, zoo(Q.mod, Pd))
+Q11L <- Q[which(Q$Qstream == "st11L"),]
+Q11L <- Q11L[!is.na(Q11L$Q.mod),]
+Q11L <- Q11L[order(Q11L$Pd),]
+Q11Lz <- with(Q11L, zoo(Q.mod, Pd))
 
 Q7 <- Q[which(Q$Qstream == "st7"),]
 Q7 <- Q7[order(Q7$Pd),]
 Q7z <- with(Q7, zoo(Q.mod, Pd))
 
-f <-  function(u) which.min(abs(as.numeric(index(st11D_tempC)) - as.numeric(u)))
-ix <- vapply(index(Q11Dz), f, integer(1))
-QP <- cbind(Q11D, st11D_tempC = coredata(st11D_tempC)[ix])
-Qw11D <- data.frame(QP)
+f <-  function(u) which.min(abs(as.numeric(index(st11L_tempC)) - as.numeric(u)))
+ix <- vapply(index(Q11Lz), f, integer(1))
+QP <- cbind(Q11L, st11L_tempC = coredata(st11L_tempC)[ix])
+Qw11L <- data.frame(QP)
 
-f <- function(u) which.min(abs(as.numeric(index(st11D_depthm)) - as.numeric(u)))
-dx <- vapply(index(Q11Dz), f, integer(1))
-QP <- cbind(Qw11D, st11D_depthm = coredata(st11D_depthm) [dx])
-Q11D_full <- data.frame(QP)
+f <- function(u) which.min(abs(as.numeric(index(st11L_depthm)) - as.numeric(u)))
+dx <- vapply(index(Q11Lz), f, integer(1))
+QP <- cbind(Qw11L, st11L_depthm = coredata(st11L_depthm) [dx])
+Q11L_full <- data.frame(QP)
 
 f <- function(u) which.min(abs(as.numeric(index(st7L_depthm)) - as.numeric(u)))
-dx <- vapply(index(Q11Dz), f, integer(1))
-QP <- cbind(Q11D_full, st7L_depthm = coredata(st7L_depthm) [dx])
-Q11D_full <- data.frame(QP)
+dx <- vapply(index(Q11Lz), f, integer(1))
+QP <- cbind(Q11L_full, st7L_depthm = coredata(st7L_depthm) [dx])
+Q11L_full <- data.frame(QP)
 
-Q11D_full_mod <- Q11D_full[!is.na(Q11D_full$st11D_depthm),]
-Q11D_full_mod = Q11D_full_mod[-1,]
+Q11L_full_mod <- Q11L_full[!is.na(Q11L_full$st11L_depthm),]
+Q11L_full_mod = Q11L_full_mod[-1,]
 
-sm_rating11D <- lm(log(Q.mod) ~ log(st11D_depthm) + log(st7L_depthm), Q11D_full_mod); summary(sm_rating11D)
+sm_rating11L <- lm(log(Q.mod) ~ log(st11L_depthm) + log(st7L_depthm), Q11L_full_mod); summary(sm_rating11L)
 
-pres_allhr$st11L_Q = exp(predict(sm_rating11D, pres_allhr))
+pres_allhr$st11L_Q = exp(predict(sm_rating11L, pres_allhr))
 Q.fix  = which(pres_allhr$st11L_Q >= 15000)
 pres_allhr[Q.fix, "st11L_Q"] = NA
 

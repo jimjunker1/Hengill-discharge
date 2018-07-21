@@ -382,8 +382,8 @@ pres_allhr[depths_d17, "st11U_Q"] = exp(predict(sm_rating11U2, pres_allhr[depths
                    
 ggplot(pres_allhr, aes(x = Pd, y = st11U_Q)) + geom_point(size = 3)
 
-Q.fix = 34273:34279
-pres_allhr[Q.fix, "st11U_Q"] = NA
+Q.fix = which(pres_allhr$st11U_Q >= 1000)
+pres_allhr[Q.fix, "st11U_Q"] = 1000
 #ST13
 
 ######## For ST13 use the Q.mod for the measures ######
@@ -474,7 +474,7 @@ ggplot(pres_allhr, aes(x = Pd, y = Hver_Q)) + geom_point(size = 3)
 
 ################################Building the final discharge file###################
 
-write.csv(pres_allhr, file = "./output-files/Q_all_fin.csv")
+write.csv(pres_allhr, file = "./output-files/Q_all_fin.csv", row.names = F)
 
 rm(list = ls()[!ls() %in% c("pres_allhr", "Q")])
 #################################################################################################################################################################

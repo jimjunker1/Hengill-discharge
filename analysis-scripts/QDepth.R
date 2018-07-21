@@ -163,7 +163,7 @@ hver <- LWAD_full[which(LWAD_full$stream == "Hver"),]
 
 ############Modeling width-discharge for all streams########
 st1_mod = st1[-which(st1$Q >= 2000),]
-st1.plot <- ggplot(st1_mod, aes(x = log(Qm3), y = log(width))) + geom_point(size = 5); st1.plot
+st1.plot <- ggplot(st1_mod, aes(x = Qm3, y = width/100)) + geom_point(size = 5); st1.plot
 st1.lm <- lm(log(width) ~ log(Qm3), data = st1_mod); summary(st1.lm)
 st1.lm2 = lm(log(width)~log(Q.mod/1000), data = st1_mod);summary(st1.lm2)
 #this is in meters m3/s 
@@ -317,12 +317,12 @@ w_rating5 <- lm(log(width) ~ log(Q.mod/1000), data = st5); summary(st5.lm)
 w_rating6 = 155.9*(Q.mod/1000)/(0.002685+(Q.mod/1000))##use this
 w_rating8 <- mean(st8$width, na.rm = T)
 w_rating9 <- mean(st9$width, na.rm = T)
-w_rating11L <- lm(log(width)~log(st11L_Q), data= st11L); summary(st11L.lm)
-w_rating11U = 94*(st11U_Q/1000)/(0.000282+(st11U_Q/1000))#use this for st11U
+w_rating11L <- lm(log(width)~log(Q.mod/1000), data= st11L); summary(st11L.lm)
+w_rating11U = 94*(Q.mod/1000)/(0.000282+(Q.mod/1000))#use this for st11U
 w_rating13 <- mean(st13$width, na.rm= T)
-w_rating14 <- lm(log(width)~log(st14_Q/1000), data= st14);summary(st14.lm)
-w_rating17 = 315+18220000^(st17_Q/1000)#use this
-w_ratingHver = 120*(Hver_Q/1000)/(0.0018+(Hver_Q/1000))#use this 
+w_rating14 <- lm(log(width)~log(Q.mod/1000), data= st14);summary(st14.lm)
+w_rating17 = 315+18220000^(Q.mod/1000)#use this
+w_ratingHver = 120*(Q.mod/1000)/(0.0018+(Q.mod/1000))#use this 
 
 ###Travel Time
 #Need to build models all in m3/s so can use length/width to get depth. 
@@ -413,19 +413,17 @@ pres_allhr$Hver_tt.s = exp(predict(tt_ratinghver, pres_allhr))
 colnames(pres_allhr)[40] = "Hver_Q"
 
 ##Getting the reach lengths for each read
-pres_allhr <- transform(pres_allhr, st1_length = mean(st1$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st5_length = mean(st5$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st6_length = mean(st6$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st8_length = mean(st8$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st9_length = mean(st9$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st11L_length = mean(st11L$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st11U_length = mean(st11U$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st13_length = mean(st13$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st14_length = mean(st14$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, st17_length = mean(st17$lg_t, na.rm = T))
-pres_allhr <- transform(pres_allhr, Hver_length = mean(hver$lg_t, na.rm = T))
-
-
+pres_allhr <- transform(pres_allhr, st1_length = mean(st1$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st5_length = mean(st5$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st6_length = mean(st6$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st8_length = mean(st8$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st9_length = mean(st9$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st11L_length = mean(st11L$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st11U_length = mean(st11U$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st13_length = mean(st13$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st14_length = mean(st14$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, st17_length = mean(st17$lg_m, na.rm = T))
+pres_allhr <- transform(pres_allhr, Hver_length = mean(hver$lg_m, na.rm = T))
 
 ### modeling depth with discharge, travel time, width, and length 
 #units = Depth(m) = (m3/s * s)/((cm/100) * m)
@@ -446,74 +444,72 @@ ggplot(pres_allhr, aes( x = st1_depthe*100)) +
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st1, aes(x = m_depth, y = ..density..), fill = "red")
 
+ggplot(pres_allhr, aes(x = st1_Q/1000, y = st1_depthe*100)) + geom_point(size = 3)
+ggplot(pres_allhr, aes(x = st1_Q/1000, y = st1_width/100)) + geom_point(size = 3) + coord_cartesian(xlim = c(0,0.05), ylim = c(1,2.5))
+
 ggplot(pres_allhr, aes( x = st5_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st5, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st5_Q/1000, y = st5_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = st6_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st6, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st6_Q/1000, y = st6_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = st8_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st8, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st8_Q/1000, y = st8_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = st9_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st9, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st9_Q/1000, y = st9_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = st11L_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st11L, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st11L_Q/1000, y = st11L_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = st11U_depthe*100)) + 
-  geom_histogram(aes(y = ..density..), fill = "blue") #+
-  #geom_histogram(data = st11U, aes(x = m_depth, y = ..density..), fill = "red")
-max(pres_allhr$st11U_depthe*100, na.rm = T)
-mean(pres_allhr$st11U_depthe*100, na.rm = T)
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st11U, aes(x = m_depth, y = ..density..), fill = "red") +
+  xlim(c(0,10))
+ggplot(pres_allhr, aes(x = st11U_Q/1000, y = st11U_depthe*100)) + geom_point(size = 3)
 
+hist(pres_allhr$st11U_Q)
+length(which(pres_allhr$st11U_Q >=100))
+mean(pres_allhr$st11U_Q, na.rm = T)
 ggplot(pres_allhr, aes( x = st13_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st13, aes(x = m_depth, y = ..density..), fill = "red")
-mean(pres_allhr$st13_depthe, na.rm = T)
-ggplot(pres_allhr, aes( x = st14_depthe*100)) + 
+mean(pres_allhr$st13_depthe*100, na.rm = T)
+ggplot(pres_allhr, aes(x = st13_Q/1000, y = st13_depthe*100)) + geom_point(size = 3)
+
+ggplot(pres_allhr, aes( x = st14_depthe*100)) +
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st14, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st14_Q/1000, y = st14_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = st17_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st17, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = st17_Q/1000, y = st17_depthe*100)) + geom_point(size = 3)
 
 ggplot(pres_allhr, aes( x = Hver_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = hver, aes(x = m_depth, y = ..density..), fill = "red")
+ggplot(pres_allhr, aes(x = Hver_Q/1000, y = Hver_depthe*100)) + geom_point(size = 3)
 
-##bind these all into data.frame
-
-Depth_all <- rbind(Q_all1, Q_all5, Q_all6, Q_all8, Q_all9, Q_all11L, Q_all13, Q_all14, Q_all17, Q_allhver)
-
-
-##plotting all the Q-depth relationships
-dev.new()
-Depth.plot <- ggplot(Depth_all, aes(x = log(Discharge), y = log(depth))) + geom_line(aes(group = Stream, colour = Stream), lwd = 2); Depth.plot
-
-
-
-Q1 <- Q[which(Q$Stream == "st1"),]
-Q1 <- Q1[order(Q1$day),]
-Q1 <- Q1[-8,]
-
-lwad1 <- LWAD[which(LWAD$stream == "st1"),]
-
-Q_lwad1 <- merge(Q1, Q_all_ag, by = c("Stream", "day"))
-
-#Q1_lwad <- with(Q, zoo(Q.mod, Pd))
-#f <- function(u) which.min(abs(as.numeric(index(LWAD
+##save this file
+write.csv(pres_allhr, file = "./output-files/Q-char_all_fin.csv", row.names = F)
 
 ############ Old code repository ##############3
 ### Code to select just Q columns from pres_allhr
 Q_allhr = data.frame(Pd = pres_allhr$Pd, pres_allhr[str_detect(names(pres_allhr), "_Q")])
 
 
+rm(list = ls()[!ls() %in% c("pres_allhr", "Q")])
 
 

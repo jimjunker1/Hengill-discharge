@@ -170,8 +170,6 @@ st1.lm2 = lm(log(width)~log(Q.mod/1000), data = st1_mod);summary(st1.lm2)
 #st5
 st5.plot <- ggplot(st5, aes(x =log(Qm3), y = log(width))) + geom_point(size = 5) + stat_smooth(method = "lm", se = F); st5.plot
 st5.lm <- lm(log(width) ~ log(Qm3), data = st5); summary(st5.lm)
-st5.lm2 = lm(width~Qm3, data = st5);summary(st5.lm2)
-
 ##st5 log-log use regression for width
 
 st6.plot <- ggplot(st6, aes(x = Q.mod/1000, y = width)) + geom_point(size = 2.5);st6.plot
@@ -187,111 +185,113 @@ median(st8$width)
 mean(st8$width)
 ## for st8 use average width for all discharge
 st9.plot <- ggplot(st9, aes(x =Q.mod, y = width)) + geom_point(size = 2.5) + stat_smooth(method = "lm", se = F);st9.plot
-mean(st$width)
+mean(st9$width)
 ##for st9 use average width for all discharge until fill in other dates from ICE2
 
-st11L.plot <- ggplot(st11L, aes(x = Qm3, y = width)) + geom_point() + stat_smooth(method = "lm", se = F); st11L.plot
-st11L.lm <- lm(width~Qm3, data= st11L); summary(st11L.lm)
+st11L.plot <- ggplot(st11L, aes(x = log(Q.mod/1000), y = log(width))) + geom_point() + stat_smooth(method = "lm", se = F); st11L.plot
+st11L.lm <- lm(log(width)~log(Q.mod/1000), data= st11L); summary(st11L.lm)
 ##This is really shit!Don't really know what to do but use lm
 
-st11U.plot = ggplot(st11U, aes(x = Q.mod, y = width)) + 
+st11U.plot = ggplot(st11U, aes(x = Q.mod/1000, y = width)) + 
   geom_point(size = 5) + geom_smooth(method = "lm", se = F) +
-  ylim(limits = c(0,100)) + xlim(c(0,15));st11U.plot
-st11U.nls = nls(width~a*Q.mod/(b+Q.mod), data = st11U, start = list(a = 110, b= 1.2) )
+  ylim(limits = c(0,100)) + xlim(c(0,0.02));st11U.plot
+st11U.nls = nls(width~a*(Q.mod/1000)/(b+(Q.mod/1000)), data = st11U, start = list(a = 110, b= .0001) )
 summary(st11U.nls)
-st11U$w_est = 110*st11U$Q.mod/(1+st11UQ.mod)#use this for st11U
+st11U$w_est = 94*(st11U$Q.mod/1000)/(0.000282+(st11U$Q.mod/1000))#use this for st11U
+plot(st11U$Q.mod/1000, st11U$width)
+points(st11U$Q.mod/1000, st11U$w_est, col = "red")
+
 #for st11U use nls estimate
-st13.plot <- ggplot(st13, aes(x = log(Q.mod), y = log(width))) + geom_point() + stat_smooth(method = "lm", se = F); st13.plot
+st13.plot <- ggplot(st13, aes(x = Q.mod, y = width)) + geom_point() + stat_smooth(method = "lm", se = F); st13.plot
 mean(st13$width)
 ###st13 use average width for all discharge
 
-st14.plot <- ggplot(st14, aes(x = Q.mod, y = log(width))) + geom_point() + stat_smooth(method = "lm", se = F);st14.plot
-st14.lm <- lm(width~Q.mod, data= st14);summary(st14.lm)
+st14.plot <- ggplot(st14, aes(x = Q.mod/1000, y = log(width))) + geom_point() + stat_smooth(method = "lm", se = F);st14.plot
+st14.lm <- lm(log(width)~log(Q.mod/1000), data= st14);summary(st14.lm)
 
 ##st14 use regression for width-discharge
 
-st17.plot <- ggplot(st17, aes(x = Qm3, y = width)) + geom_point() + stat_smooth(method = "lm",se = F);st17.plot
+st17.plot <- ggplot(st17, aes(x = log(Q.mod/1000), y = log(width))) + geom_point() + stat_smooth(method = "lm",se = F);st17.plot
+st17.plot <- ggplot(st17, aes(x = Q.mod/1000, y = width)) + geom_point() + stat_smooth(method = "lm",se = F);st17.plot
 st17.lm <- lm(width~Q.mod, data= st17); summary(st17.lm)
 st17.nls = nls(width~a+b^(Q.mod/1000), data = st17, start = list(a = 315, b = 1.2))
 summary(st17.nls)
 st17$w_est = 315+18220000^(st17$Q.mod/1000)#use this
-plot(st17$width~st17$Qm3)
-points(st17$Qm3, st17$w_est, col = "red")
+plot(st17$width~st17$Q.mod/1000)
+points(st17$Q.mod/1000, st17$w_est, col = "red")
 ##st17 use estimate from nls model for now 
 hver_mod = hver[-which(hver$width >= 200),]
 hver.plot <- ggplot(hver_mod, aes(x = Q.mod, y = width)) + geom_point() + stat_smooth(method = "lm", se = F); hver.plot
 hver.lm <- lm(width~Q.mod, data=hver_mod);summary(hver.lm)
 hver.nls = nls(width ~ a*(Q.mod/1000)/(b+(Q.mod/1000)), data = hver_mod, start = list(a = 140, b = 0.01))
 summary(hver.nls)
-hver$w_est = 140*hver$Q.mod/(0.005+hver$Q.mod)#use this 
+hver_mod$w_est = 120*(hver_mod$Q.mod/1000)/(0.0018+(hver_mod$Q.mod/1000))#use this 
 plot((hver_mod$Q.mod/1000),hver_mod$width, xlim = c(0,0.090), ylim = c(0,130))
-points(hver_mod$Q.mod, hver_mod$w_est, col = "red", lwd = 2)
+points(hver_mod$Q.mod/1000, hver_mod$w_est, col = "red")
 ##hver nls estimations
 
 ######################Modeling travel time-discharge in all streams##########
 st1tt.plot <- ggplot(st1, aes(x = log(Q.mod), y = log(tt.s))) + geom_point();st1tt.plot
 st1tt.lm <- lm(log(tt.s)~log(Q.mod), data = st1);summary(st1tt.lm)
-plot(resid(st1tt.lm))
 ####use power regression for tt-discharge in st1
 st5Q = Q[which(Q$Qstream == "st5"),]
 st5Q = st5Q[-which(st5Q$travel_time_secs >= 450),]
 st5Q= st5Q[-3,]
-st5tt.plot <- ggplot(st5Q, aes(x = Q.mod, y = travel_time_secs)) + geom_point();st5tt.plot
-st5tt.lm <- lm(travel_time_secs~Q.mod, data = st5Q);summary(st5tt.lm)
+st5tt.plot <- ggplot(st5Q, aes(x = log(Q.mod/1000), y = log(travel_time_secs))) + geom_point();st5tt.plot
+st5tt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st5Q);summary(st5tt.lm)
 ##use regression tt-discharge of the data w/ outliers removed
 st6Q = Q[which(Q$Qstream == "st6"),]
-st6tt.plot <- ggplot(st6Q, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point() + stat_smooth(method = "lm", se = F);st6tt.plot
-st6tt.lm <- lm(log(travel_time_secs)~log(Q.mod), data = st6Q); summary(st6tt.lm)
+st6tt.plot <- ggplot(st6Q, aes(x = log(Q.mod/1000), y = log(travel_time_secs))) + geom_point() + stat_smooth(method = "lm", se = F);st6tt.plot
+st6tt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st6Q); summary(st6tt.lm)
 ###use regression for tt-Discharge
-
-
 #taking out an  outlier that is waaaayy out there
 st8Q = Q[which(Q$Qstream == "st8"),]
 st8Q <- st8Q[-which(st8Q$Q.mod > 40 | st8Q$travel_time_secs >= 230),]
 
-st8tt.plot <- ggplot(st8Q, aes(x = Q.mod, y = travel_time_secs)) + geom_point() + stat_smooth(method = "lm", se = F);st8tt.plot
-st8tt.lm <- lm(log(travel_time_secs)~Q.mod, data= st8Q);summary(st8tt.lm)
+st8tt.plot <- ggplot(st8Q, aes(x = log(Q.mod/1000), y = log(travel_time_secs))) + geom_point() + stat_smooth(method = "lm", se = F);st8tt.plot
+st8tt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data= st8Q);summary(st8tt.lm)
 ##use regression with outliers removed for tt-discharge in st8
 st9Q = Q[which(Q$Qstream == "st9"),]
 
 st9tt.plot <- ggplot(st9Q, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point();st9tt.plot
-st9tt.lm <- lm(log(travel_time_secs)~log(Q.mod), data= st9Q);summary(st9tt.lm)
+st9tt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data= st9Q);summary(st9tt.lm)
 ##use regression of power lm for st9 tt-discharge
 st11UQ = Q[which(Q$Qstream == "st11U"),]
 
 st11Utt.plot <- ggplot(st11UQ, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point();st11Utt.plot
-st11Utt.lm = lm(log(travel_time_secs)~log(Q.mod), data = st11UQ);summary(st11Utt.lm)
+st11Utt.lm = lm(log(travel_time_secs)~log(Q.mod/1000), data = st11UQ);summary(st11Utt.lm)
 #use power regression for st11U
 
 #pulling out 1 outlier
 st11LQ = Q[which(Q$Qstream == "st11L"),]
 st11LQ <- st11LQ[-which(st11LQ$Q.mod <= 5),]
 
-st11Ltt.plot <- ggplot(st11LQ, aes(x = Q.mod, y = log(travel_time_secs))) + geom_point();st11Ltt.plot
-st11Ltt.lm <- lm(log(travel_time_secs)~log(Q.mod), data=st11LQ);summary(st11Ltt.lm)
+st11Ltt.plot <- ggplot(st11LQ, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point();st11Ltt.plot
+st11Ltt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data=st11LQ);summary(st11Ltt.lm)
 ##use regresssion with outlier removed
 st13Q = Q[which(Q$Qstream == "st13"),]
 
 st13Q <- st13Q[which(st13Q$Q.mod >= 12),]
-st13tt.plot <- ggplot(st13Q, aes(x = Q.mod, y = travel_time_secs))+geom_point()+stat_smooth(method = "lm", se = F);st13tt.plot
+st13tt.plot <- ggplot(st13Q, aes(x = log(Q.mod), y = log(travel_time_secs)))+geom_point()+stat_smooth(method = "lm", se = F);st13tt.plot
 
 st13tt.lm <- lm(travel_time_secs~Q.mod, data = st13Q);summary(st13tt.lm)
+mean(st13Q$travel_time_sec, na.rm = T)
 #use regression with outlier removed for st13
 st14Q = Q[which(Q$Qstream == "st14"),]
 
 st14tt.plot <- ggplot(st14Q, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point(); st14tt.plot
-st14tt.lm <- lm(log(travel_time_secs)~log(Q.mod), data=st14Q);summary(st14tt.lm)
+st14tt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data=st14Q);summary(st14tt.lm)
 ##use power regression for tt-discharge in st14
 st17Q = Q[which(Q$Qstream == "st17"),]
 
 st17tt.plot <- ggplot(st17Q, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point();st17tt.plot
-st17tt.lm <- lm(log(travel_time_secs)~log(Q.mod), data = st17Q);summary(st17tt.lm)
+st17tt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st17Q);summary(st17tt.lm)
 #use power regression for st17 tt-discharge relationships
 hverQ = Q[which(Q$Qstream == "hver"),]
 
 hvertt.plot <- ggplot(hverQ, aes(x = log(Q.mod), y = log(travel_time_secs))) + geom_point();hvertt.plot
 
-hvertt.lm <- lm(log(travel_time_secs)~log(Q.mod), data = hverQ);summary(hvertt.lm)
+hvertt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data = hverQ);summary(hvertt.lm)
 
 ###take a look at the depths and discharge measures
 
@@ -312,17 +312,17 @@ hverd.plot <- ggplot(hver, aes(x = Q.mod, y = m_depth)) + geom_point();hverd.plo
 ##relisting all the regressions used for tt and widths
 ###Widths
 st1_mod = st1[-which(st1$Q >= 2000),]
-w_rating1 <- lm(log(width) ~ log(Qm3), data = st1_mod); summary(w_rating1)
-w_rating5 <- lm(width ~ Qm3, data = st5); summary(st5.lm)
-w_rating6 = 155.9*(st6$Q.mod/1000)/(0.002685+(st6$Q.mod/1000))##use this
+w_rating1 <- lm(log(width) ~ log(Q.mod/1000), data = st1_mod); summary(w_rating1)
+w_rating5 <- lm(log(width) ~ log(Q.mod/1000), data = st5); summary(st5.lm)
+w_rating6 = 155.9*(Q.mod/1000)/(0.002685+(Q.mod/1000))##use this
 w_rating8 <- mean(st8$width, na.rm = T)
 w_rating9 <- mean(st9$width, na.rm = T)
-w_rating11L <- lm(width~Q.mod, data= st11L); summary(st11L.lm)
-w_rating11U = 110*st11U$Q.mod/(1+st11UQ.mod)#use this for st11U
+w_rating11L <- lm(log(width)~log(st11L_Q), data= st11L); summary(st11L.lm)
+w_rating11U = 94*(st11U_Q/1000)/(0.000282+(st11U_Q/1000))#use this for st11U
 w_rating13 <- mean(st13$width, na.rm= T)
-w_rating14 <- lm(width~Q.mod, data= st14);summary(st14.lm)
-w_rating17 = 315+18220000^(st17$Q.mod/1000)#use this
-w_ratingHver = 140*hver$Q.mod/(5+hver$Q.mod)#use this 
+w_rating14 <- lm(log(width)~log(st14_Q/1000), data= st14);summary(st14.lm)
+w_rating17 = 315+18220000^(st17_Q/1000)#use this
+w_ratingHver = 120*(Hver_Q/1000)/(0.0018+(Hver_Q/1000))#use this 
 
 ###Travel Time
 #Need to build models all in m3/s so can use length/width to get depth. 
@@ -331,80 +331,162 @@ tt_rating1 <- lm(log(tt.s)~log(Q.mod/1000), data = st1);summary(st1tt.lm)
 st5Q = Q[which(Q$Qstream == "st5"),]
 st5Q = st5Q[-which(st5Q$travel_time_secs >= 450),]
 st5Q= st5Q[-3,]
-tt_rating5 <- lm(travel_time_secs~(Q.mod/1000), data = st5Q);summary(st5tt.lm)
+tt_rating5 <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st5Q);summary(st5tt.lm)
 st6Q = Q[which(Q$Qstream == "st6"),]
 tt_rating6 <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st6Q); summary(st6tt.lm)
 st8Q = Q[which(Q$Qstream == "st8"),]
 st8Q <- st8Q[-which(st8Q$Q.mod > 40 | st8Q$travel_time_secs >= 230),]
-tt_rating8<- lm(log(travel_time_secs)~Q.mod/1000, data= st8Q);summary(st8tt.lm)
+tt_rating8<- lm(log(travel_time_secs)~log(Q.mod/1000), data= st8Q);summary(st8tt.lm)
 st9Q = Q[which(Q$Qstream == "st9"),]
-tt_rating9 <- lm(log(travel_time_secs)~log(Q.mod), data= st9Q);summary(st9tt.lm)
+tt_rating9 <- lm(log(travel_time_secs)~log(Q.mod/1000), data= st9Q);summary(st9tt.lm)
 st11LQ = Q[which(Q$Qstream == "st11L"),]
 st11LQ <- st11LQ[-which(st11LQ$Q.mod <= 5),]
-tt_rating11L <- lm(log(travel_time_secs)~log(Q.mod), data=st11LQ);summary(st11Ltt.lm)
+tt_rating11L <- lm(log(travel_time_secs)~log(Q.mod/1000), data=st11LQ);summary(st11Ltt.lm)
 st11UQ = Q[which(Q$Qstream == "st11U"),]
-tt_rating11U = lm(log(travel_time_secs)~log(Q.mod), data = st11UQ);summary(st11Utt.lm)
+tt_rating11U = lm(log(travel_time_secs)~log(Q.mod/1000), data = st11UQ);summary(st11Utt.lm)
 st13Q = Q[which(Q$Qstream == "st13"),]
 st13Q <- st13Q[which(st13Q$Q.mod >= 12),]
-tt_rating13 <- lm(travel_time_secs~Q.mod, data = st13Q);summary(st13tt.lm)
+tt_rating13 <- mean(st13Q$travel_time_secs, na.rm = T)
 st14Q = Q[which(Q$Qstream == "st14"),]
-tt_rating14<- lm(log(travel_time_secs)~log(Q.mod), data=st14Q);summary(st14tt.lm)
+tt_rating14<- lm(log(travel_time_secs)~log(Q.mod/1000), data=st14Q);summary(st14tt.lm)
 st17Q = Q[which(Q$Qstream == "st17"),]
-tt_rating17 <- lm(log(travel_time_secs)~log(Q.mod), data = st17Q);summary(st17tt.lm)
+tt_rating17 <- lm(log(travel_time_secs)~log(Q.mod/1000), data = st17Q);summary(st17tt.lm)
 hverQ = Q[which(Q$Qstream == "hver"),]
-tt_ratinghver<- lm(log(travel_time_secs)~log(Q.mod), data = hverQ);summary(hvertt.lm)
+tt_ratinghver<- lm(log(travel_time_secs)~log(Q.mod/1000), data = hverQ);summary(hvertt.lm)
 
 
-###estimating width with discharge
+###estimating width and tt.s with discharge
+colnames(pres_allhr)[30] = "Q.mod"
+pres_allhr$st1_width <- exp(predict(w_rating1, pres_allhr));hist(pres_allhr$st1_width)
+pres_allhr$st1_tt.s <- exp(predict(tt_rating1, pres_allhr));hist(pres_allhr$st1_tt.s)
+colnames(pres_allhr)[30] = "st1_Q"
 
-Q_all1$width <- predict(w_rating1, Q_all1)
-Q_all5$width <- predict(w_rating5, Q_all5)
-Q_all6 <- transform(Q_all6, width = mean(st6$width, na.rm = T))
-Q_all8 <- transform(Q_all8, width = mean(st8$width, na.rm = T))
-Q_all9 <- transform(Q_all9, width = mean(st9$width, na.rm = T))
-Q_all11L$width <- predict(w_rating11L, Q_all11L)
-Q_all13 <- transform(Q_all13, width = mean(st13$width, na.rm = T))
-Q_all14$width <- predict(w_rating14, Q_all14)
-Q_all17$width <- predict(w_rating17, Q_all17)
-Q_allhver$width <- predict(w_ratinghver, Q_allhver)
+colnames(pres_allhr)[31] = "Q.mod"
+pres_allhr$st5_width <- exp(predict(w_rating5, pres_allhr));hist(pres_allhr$st5_width)
+pres_allhr$st5_tt.s = exp(predict(tt_rating5, pres_allhr));hist(pres_allhr$st5_tt.s)
+colnames(pres_allhr)[31] = "st5_Q"
 
-##merging all the Q and LWAD data
+colnames(pres_allhr)[32] = "Q.mod"
+pres_allhr$st6_width = 155.9*(pres_allhr$Q.mod/1000)/(0.002685+(pres_allhr$Q.mod/1000));hist(pres_allhr$st6_width)
+pres_allhr$st6_tt.s = exp(predict(tt_rating6, pres_allhr));hist(pres_allhr$st6_tt.s)
+colnames(pres_allhr)[32] = "st6_Q"
 
-Q_all1$tt.s <- exp(predict(tt_rating1, Q_all1))
-Q_all5$tt.s <- predict(tt_rating5, Q_all5)
-Q_all6$tt.s <- exp(predict(tt_rating6, Q_all6))
-Q_all8$tt.s <- exp(predict(tt_rating8, Q_all8))
-Q_all9$tt.s <- exp(predict(tt_rating9, Q_all9))
-Q_all11L$tt.s <- exp(predict(tt_rating11L, Q_all11L))
-Q_all13 <- transform(Q_all13, tt.s = mean(st13$tt.s, na.rm=T))
-Q_all14$tt.s <- exp(predict(tt_rating14, Q_all14))
-Q_all17$tt.s <- exp(predict(tt_rating17, Q_all17))
-Q_allhver$tt.s <- exp(predict(tt_ratinghver, Q_allhver))
+colnames(pres_allhr)[33] = "Q.mod"
+pres_allhr <- transform(pres_allhr, st8_width = mean(st8$width, na.rm = T))
+pres_allhr$st8_tt.s = exp(predict(tt_rating8, pres_allhr));hist(pres_allhr$st8_tt.s)
+colnames(pres_allhr)[33] = "st8_Q"
+
+colnames(pres_allhr)[34] = "Q.mod"
+pres_allhr <- transform(pres_allhr, st9_width = mean(st9$width, na.rm = T))
+pres_allhr$st9_tt.s = exp(predict(tt_rating9, pres_allhr));hist(pres_allhr$st9_tt.s)
+colnames(pres_allhr)[34] = "st9_Q"
+
+colnames(pres_allhr)[35] = "Q.mod"
+pres_allhr$st11L_width <- exp(predict(w_rating11L, pres_allhr));hist(pres_allhr$st11L_width)
+pres_allhr$st11L_tt.s <- exp(predict(tt_rating11L, pres_allhr));hist(pres_allhr$st11L_tt.s)
+colnames(pres_allhr)[35] = "st11L_Q"
+
+colnames(pres_allhr)[36] = "Q.mod"
+pres_allhr$st11U_width <- 94*(pres_allhr$Q.mod/1000)/(0.000282+(pres_allhr$Q.mod/1000));hist(pres_allhr$st11U_width)
+pres_allhr$st11U_tt.s <- exp(predict(tt_rating11U, pres_allhr));hist(pres_allhr$st11U_tt.s)
+colnames(pres_allhr)[36] = "st11U_Q"
+
+colnames(pres_allhr)[37] = "Q.mod"
+pres_allhr$Q.mod = 14.6
+pres_allhr <- transform(pres_allhr, st13_width = mean(st13$width, na.rm = T))
+pres_allhr = transform(pres_allhr, st13_tt.s = mean(st13Q$travel_time_secs, na.rm = T))
+colnames(pres_allhr)[37] = "st13_Q"
+
+colnames(pres_allhr)[38] = "Q.mod"
+pres_allhr$st14_width <- exp(predict(w_rating14, pres_allhr));hist(pres_allhr$st14_width)
+pres_allhr$st14_tt.s = exp(predict(tt_rating14, pres_allhr));hist(pres_allhr$st14_tt.s)
+colnames(pres_allhr)[38] = "st14_Q"
+
+colnames(pres_allhr)[39] = "Q.mod"
+pres_allhr <- transform(pres_allhr, st17_width = mean(st17$width, na.rm = T))
+pres_allhr$st17_tt.s = exp(predict(tt_rating17, pres_allhr));hist(pres_allhr$st17_tt.s)
+colnames(pres_allhr)[39] = "st17_Q"
+
+colnames(pres_allhr)[40] = "Q.mod"
+pres_allhr$Hver_width <- 120*(pres_allhr$Q.mod/1000)/(0.0018+(pres_allhr$Q.mod/1000))
+pres_allhr$Hver_tt.s = exp(predict(tt_ratinghver, pres_allhr))
+colnames(pres_allhr)[40] = "Hver_Q"
 
 ##Getting the reach lengths for each read
-Q_all1 <- transform(Q_all1, length = mean(st1$length, na.rm = T))
-Q_all5 <- transform(Q_all5, length = mean(st5$length, na.rm = T))
-Q_all6 <- transform(Q_all6, length = mean(st6$length, na.rm = T))
-Q_all8 <- transform(Q_all8, length = mean(st8$length, na.rm = T))
-Q_all9 <- transform(Q_all9, length = mean(st9$length, na.rm = T))
-Q_all11L <- transform(Q_all11L, length = mean(st11L$length, na.rm = T))
-Q_all13 <- transform(Q_all13, length = mean(st13$length, na.rm = T))
-Q_all14 <- transform(Q_all14, length = mean(st14$length, na.rm = T))
-Q_all17 <- transform(Q_all17, length = mean(st17$length, na.rm = T))
-Q_allhver <- transform(Q_allhver, length = mean(hver$length, na.rm = T))
+pres_allhr <- transform(pres_allhr, st1_length = mean(st1$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st5_length = mean(st5$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st6_length = mean(st6$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st8_length = mean(st8$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st9_length = mean(st9$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st11L_length = mean(st11L$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st11U_length = mean(st11U$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st13_length = mean(st13$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st14_length = mean(st14$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, st17_length = mean(st17$lg_t, na.rm = T))
+pres_allhr <- transform(pres_allhr, Hver_length = mean(hver$lg_t, na.rm = T))
 
 
-### modeling depth with disrcharge and width  !!!! need to add in length!!
-Q_all1 <- transform(Q_all1, depth = (Discharge * tt.s)/(width*length))
-Q_all5 <- transform(Q_all5, depth = (Discharge * tt.s)/(length*width))
-Q_all6 <- transform(Q_all6, depth = (Discharge * tt.s)/(length*width))
-Q_all8 <- transform(Q_all8, depth = (Discharge * tt.s)/(length*width))
-Q_all9 <- transform(Q_all9, depth = (Discharge * tt.s)/(length*width))
-Q_all11L <- transform(Q_all11L, depth = (Discharge * tt.s)/(length*width))
-Q_all13 <- transform(Q_all13, depth = (Discharge * tt.s)/(length*width))
-Q_all14 <- transform(Q_all14, depth = (Discharge * tt.s)/(length*width))
-Q_all17 <- transform(Q_all17, depth = (Discharge * tt.s)/(length*width))
-Q_allhver <- transform(Q_allhver, depth = (Discharge * tt.s)/(length*width))
+
+### modeling depth with discharge, travel time, width, and length 
+#units = Depth(m) = (m3/s * s)/((cm/100) * m)
+pres_allhr$st1_depthe = ((pres_allhr$st1_Q/1000)*pres_allhr$st1_tt.s)/((pres_allhr$st1_width/100)*pres_allhr$st1_length)
+pres_allhr$st5_depthe = ((pres_allhr$st5_Q/1000)*pres_allhr$st5_tt.s)/((pres_allhr$st5_width/100)*pres_allhr$st5_length)
+pres_allhr$st6_depthe = ((pres_allhr$st6_Q/1000)*pres_allhr$st6_tt.s)/((pres_allhr$st6_width/100)*pres_allhr$st6_length)
+pres_allhr$st8_depthe = ((pres_allhr$st8_Q/1000)*pres_allhr$st8_tt.s)/((pres_allhr$st8_width/100)*pres_allhr$st8_length)
+pres_allhr$st9_depthe = ((pres_allhr$st9_Q/1000)*pres_allhr$st9_tt.s)/((pres_allhr$st9_width/100)*pres_allhr$st9_length)
+pres_allhr$st11L_depthe = ((pres_allhr$st11L_Q/1000)*pres_allhr$st11L_tt.s)/((pres_allhr$st11L_width/100)*pres_allhr$st11L_length)
+pres_allhr$st11U_depthe = ((pres_allhr$st11U_Q/1000)*pres_allhr$st11U_tt.s)/((pres_allhr$st11U_width/100)*pres_allhr$st11U_length)
+pres_allhr$st13_depthe = ((pres_allhr$st13_Q/1000)*pres_allhr$st13_tt.s)/((pres_allhr$st13_width/100)*pres_allhr$st13_length)
+pres_allhr$st14_depthe = ((pres_allhr$st14_Q/1000)*pres_allhr$st14_tt.s)/((pres_allhr$st14_width/100)*pres_allhr$st14_length)
+pres_allhr$st17_depthe = ((pres_allhr$st17_Q/1000)*pres_allhr$st17_tt.s)/((pres_allhr$st17_width/100)*pres_allhr$st17_length)
+pres_allhr$Hver_depthe = ((pres_allhr$Hver_Q/1000)*pres_allhr$Hver_tt.s)/((pres_allhr$Hver_width/100)*pres_allhr$Hver_length)
+
+#plotting all the estimated depths and the measured discharge
+ggplot(pres_allhr, aes( x = st1_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st1, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st5_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st5, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st6_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st6, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st8_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st8, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st9_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st9, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st11L_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st11L, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st11U_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") #+
+  #geom_histogram(data = st11U, aes(x = m_depth, y = ..density..), fill = "red")
+max(pres_allhr$st11U_depthe*100, na.rm = T)
+mean(pres_allhr$st11U_depthe*100, na.rm = T)
+
+ggplot(pres_allhr, aes( x = st13_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st13, aes(x = m_depth, y = ..density..), fill = "red")
+mean(pres_allhr$st13_depthe, na.rm = T)
+ggplot(pres_allhr, aes( x = st14_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st14, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = st17_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = st17, aes(x = m_depth, y = ..density..), fill = "red")
+
+ggplot(pres_allhr, aes( x = Hver_depthe*100)) + 
+  geom_histogram(aes(y = ..density..), fill = "blue") +
+  geom_histogram(data = hver, aes(x = m_depth, y = ..density..), fill = "red")
 
 ##bind these all into data.frame
 

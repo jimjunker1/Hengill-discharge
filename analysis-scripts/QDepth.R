@@ -141,13 +141,11 @@ Q_tt.plot <- ggplot(LWAD_full, aes(x = log(Qm3), y = log(tt.s))) + geom_point(si
 Q_tt.plot + aes(colour = stream)
 
 Q_tt.plot + aes(colour = stream) + geom_line(aes(colour = stream))
-dev.new()
+
 	###depth###
-Q_depth.plot <- ggplot(LWAD_full, aes(x = log(Qm), y = m_depth)) + geom_point(size = 5); Q_depth.plot
+Q_depth.plot <- ggplot(LWAD_full, aes(x = log(Qm3), y = m_depth)) + geom_point(aes(colour = stream),size = 5); Q_depth.plot
 
-Q_depth.plot + aes(colour = stream)
-
-Q_depth.plot + aes(colour = stream) + geom_smooth(aes(group = stream),se = F)
+Q_depth.plot + geom_smooth(method = "lm", se = F)
 
 ##### Knock them out by stream
 
@@ -164,22 +162,25 @@ st17 <- LWAD_full[which(LWAD_full$stream == "st17"),]
 hver <- LWAD_full[which(LWAD_full$stream == "Hver"),]
 
 ############Modeling width-discharge for all streams########
-
-st1.plot <- ggplot(st1_mod, aes(x = log(Q.mod), y = log(width))) + geom_point(size = 5); st1.plot
 st1_mod = st1[-which(st1$Q >= 2000),]
+st1.plot <- ggplot(st1_mod, aes(x = log(Qm3), y = log(width))) + geom_point(size = 5); st1.plot
 st1.lm <- lm(log(width) ~ log(Qm3), data = st1_mod); summary(st1.lm)
-
+st1.lm2 = lm(log(width)~log(Q.mod/1000), data = st1_mod);summary(st1.lm2)
+#this is in meters m3/s 
 #st5
-st5.plot <- ggplot(st5, aes(x = Q.mod, y = width)) + geom_point(size = 5) + stat_smooth(method = "lm", se = F); st5.plot
-st5.lm <- lm(width ~ Qm3, data = st5); summary(st5.lm)
-##st5 use regression for width
+st5.plot <- ggplot(st5, aes(x =log(Qm3), y = log(width))) + geom_point(size = 5) + stat_smooth(method = "lm", se = F); st5.plot
+st5.lm <- lm(log(width) ~ log(Qm3), data = st5); summary(st5.lm)
+st5.lm2 = lm(width~Qm3, data = st5);summary(st5.lm2)
 
-st6.plot <- ggplot(st6, aes(x = Qm3, y = width)) + geom_point(size = 2.5);st6.plot
+##st5 log-log use regression for width
+
+st6.plot <- ggplot(st6, aes(x = Q.mod/1000, y = width)) + geom_point(size = 2.5);st6.plot
 st6.nls = nls(width ~ a*(Q.mod/1000)/(b+(Q.mod/1000)), data = st6, start = list(a = 140, b = 0.00268))
 summary(st6.nls)
 st6$w_est = 155.9*(st6$Q.mod/1000)/(0.00268+(st6$Q.mod/1000))##use this
-plot(st6$Qm3, st6$width)
-points(st6$Qm3, st6$w_est, col = "red")
+plot(st6$Q.mod, st6$width)
+points(st6$Q.mod, st6$w_est, col = "red")
+
 ### for st6 use saturating model unless fill in other dates from ICE2
 st8.plot <- ggplot(st8, aes(x = Qm3, y = width)) + geom_point(size = 5) + stat_smooth(method = "lm", se = F); st8.plot
 median(st8$width)

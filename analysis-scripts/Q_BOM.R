@@ -12,9 +12,9 @@ library(data.table)
 library(corrplot)
 library(reshape2)
 theme_set(theme_bw(20))
-
+#need to adjust this eventually
 Q_all <- read.csv("./output-files/Q_all_fin.csv")
-st_temps <- read.csv("C:/Users/Jim/Documents/Projects/Iceland/BOMs/BOM final/FinalRfiles/stream_temps.csv",T)
+st_temps <- read.csv("./stream-data/stream_temps.csv",T)
 ####  Isolate all Q between Oct-11 and Aug-12 ####
 
 Q_all$Pd <- as.POSIXct(paste(Q_all$Date), format = "%d-%m-%y", tz = "UTC")

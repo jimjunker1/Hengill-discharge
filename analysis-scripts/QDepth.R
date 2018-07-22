@@ -217,7 +217,7 @@ st17.lm <- lm(width~Q.mod, data= st17); summary(st17.lm)
 st17.nls = nls(width~a+b^(Q.mod/1000), data = st17, start = list(a = 315, b = 1.2))
 summary(st17.nls)
 st17$w_est = 315+18220000^(st17$Q.mod/1000)#use this
-plot(st17$width~st17$Q.mod/1000)
+plot((st17$Q.mod/1000),st17$width)
 points(st17$Q.mod/1000, st17$w_est, col = "red")
 ##st17 use estimate from nls model for now 
 hver_mod = hver[-which(hver$width >= 200),]
@@ -314,15 +314,15 @@ hverd.plot <- ggplot(hver, aes(x = Q.mod, y = m_depth)) + geom_point();hverd.plo
 st1_mod = st1[-which(st1$Q >= 2000),]
 w_rating1 <- lm(log(width) ~ log(Q.mod/1000), data = st1_mod); summary(w_rating1)
 w_rating5 <- lm(log(width) ~ log(Q.mod/1000), data = st5); summary(st5.lm)
-w_rating6 = 155.9*(Q.mod/1000)/(0.002685+(Q.mod/1000))##use this
+#w_rating6 = 155.9*(Q.mod/1000)/(0.002685+(Q.mod/1000))##use this
 w_rating8 <- mean(st8$width, na.rm = T)
 w_rating9 <- mean(st9$width, na.rm = T)
 w_rating11L <- lm(log(width)~log(Q.mod/1000), data= st11L); summary(st11L.lm)
-w_rating11U = 94*(Q.mod/1000)/(0.000282+(Q.mod/1000))#use this for st11U
+#w_rating11U = 94*(Q.mod/1000)/(0.000282+(Q.mod/1000))#use this for st11U
 w_rating13 <- mean(st13$width, na.rm= T)
 w_rating14 <- lm(log(width)~log(Q.mod/1000), data= st14);summary(st14.lm)
-w_rating17 = 315+18220000^(Q.mod/1000)#use this
-w_ratingHver = 120*(Q.mod/1000)/(0.0018+(Q.mod/1000))#use this 
+#w_rating17 = 315+18220000^(Q.mod/1000)#use this
+#w_ratingHver = 120*(Q.mod/1000)/(0.0018+(Q.mod/1000))#use this 
 
 ###Travel Time
 #Need to build models all in m3/s so can use length/width to get depth. 

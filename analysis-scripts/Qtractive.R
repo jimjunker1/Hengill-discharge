@@ -3,7 +3,7 @@ source("./analysis-scripts/QDepth.R")
 
 st_temps <- read.csv("./stream-data/stream_temps1.csv",T,stringsAsFactors = F)
 st11L.fix = which(st_temps$Stream == "ST11D")
-st_temps[st11L.fix, "Stream"] = "ST11L"
+st_temps[st11L.fix, "Stream"] = "ST11L";rm(st11L.fix)
 st_temps = data.frame(unclass(st_temps))
 #calculate tractive forces for all streams at all dates
 #need to estimate the hydraulic radius across all Q's and streams
@@ -33,19 +33,21 @@ pres_allhr$Hver_Rh = (pres_allhr$Hver_depthe*(pres_allhr$Hver_width/100))/(2*pre
 plot(pres_allhr$Hver_depthe, pres_allhr$Hver_Rh);abline(a=0,b=1)
 
 #calculate the tractive forces on each stream using the Rh series
-#units are kg/m^2
-pres_allhr$st1_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST1")]/100)*pres_allhr$st1_Rh
-pres_allhr$st5_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST5")]/100)*pres_allhr$st5_Rh
-pres_allhr$st6_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST6")]/100)*pres_allhr$st6_Rh
-pres_allhr$st8_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST8")]/100)*pres_allhr$st8_Rh
-pres_allhr$st9_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST9")]/100)*pres_allhr$st9_Rh
-pres_allhr$st11L_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST11L")]/100)*pres_allhr$st11L_Rh
-pres_allhr$st11U_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST11U")]/100)*pres_allhr$st11U_Rh
-pres_allhr$st13_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST13")]/100)*pres_allhr$st13_Rh
-pres_allhr$st14_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST14")]/100)*pres_allhr$st14_Rh
-pres_allhr$st17_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "ST17")]/100)*pres_allhr$st17_Rh
-pres_allhr$Hver_tforce = 1000*unique(st_temps$Slope[which(st_temps$Stream == "Hver")]/100)*pres_allhr$Hver_Rh
+#units are N/m^2 --remove 9.807 to get to kg/m^2
+pres_allhr$st1_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST1")]/100)*pres_allhr$st1_Rh
+pres_allhr$st5_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST5")]/100)*pres_allhr$st5_Rh
+pres_allhr$st6_tforce = 1000*9.807*(st_temps$Slope[which(st_temps$Stream == "ST6")]/100)*pres_allhr$st6_Rh
+pres_allhr$st8_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST8")]/100)*pres_allhr$st8_Rh
+pres_allhr$st9_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST9")]/100)*pres_allhr$st9_Rh
+pres_allhr$st11L_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST11L")]/100)*pres_allhr$st11L_Rh
+pres_allhr$st11U_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST11U")]/100)*pres_allhr$st11U_Rh
+pres_allhr$st13_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST13")]/100)*pres_allhr$st13_Rh
+pres_allhr$st14_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST14")]/100)*pres_allhr$st14_Rh
+pres_allhr$st17_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST17")]/100)*pres_allhr$st17_Rh
+pres_allhr$Hver_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "Hver")]/100)*pres_allhr$Hver_Rh
 
+#critical force approximates the force to move sediment of x(mm): e.g. tforce of 16
+#is necessary to move sediment of 16mm
 hist(pres_allhr$st1_tforce)
 ggplot(pres_allhr, aes(x = st1_tforce)) + geom_histogram(aes(y = ..density..))
 hist(pres_allhr$st5_tforce)
@@ -83,56 +85,9 @@ hist(pres_allhr$st17_vel);mean(pres_allhr$st17_vel, na.rm = T)
 pres_allhr$Hver_vel = pres_allhr$Hver_length/pres_allhr$Hver_tt.s
 hist(pres_allhr$Hver_vel);mean(pres_allhr$Hver_vel, na.rm = T)
 
-#calculate relative bed stability
-pres_allhr$st1_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST1")])))/(0.7*pres_allhr$st1_vel)
-hist(pres_allhr$st1_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st1_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st1_RBS <= 1))
-pres_allhr$st5_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST5")])))/(0.7*pres_allhr$st5_vel)
-hist(pres_allhr$st5_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st5_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st5_RBS <= 1))
-pres_allhr$st6_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST6")])))/(0.7*pres_allhr$st6_vel)
-hist(pres_allhr$st6_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st6_RBS)) + geom_point(size = 2) + geom_hline(yintercept = 1)
-length(which(pres_allhr$st6_RBS <= 1))
-pres_allhr$st8_RBS = (0.155*sqrt(33.8))/(0.7*pres_allhr$st8_vel)
-hist(pres_allhr$st8_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st8_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st8_RBS < 1))
-pres_allhr$st9_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST9")])))/(0.7*pres_allhr$st9_vel)
-hist(pres_allhr$st9_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st9_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st11L_RBS <= 1))
-pres_allhr$st11L_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST11L")])))/(0.7*pres_allhr$st11L_vel)
-hist(pres_allhr$st11L_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st11L_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st11L_RBS <= 1))
-pres_allhr$st11U_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST11U")])))/(0.7*pres_allhr$st11U_vel)
-hist(pres_allhr$st11U_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st11U_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st11U_RBS <= 1))
-pres_allhr$st13_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST13")])))/(0.7*pres_allhr$st13_vel)
-hist(pres_allhr$st13_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st13_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st13_RBS <= 1))
-pres_allhr$st14_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST14")])))/(0.7*pres_allhr$st14_vel)
-hist(pres_allhr$st14_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st14_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st14_RBS <= 1))
-pres_allhr$st17_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "ST17")])))/(0.7*pres_allhr$st17_vel)
-hist(pres_allhr$st17_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = st17_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$st17_RBS <= 1))
-pres_allhr$Hver_RBS = (0.155*sqrt(11.6))/(0.7*pres_allhr$Hver_vel)
-hist(pres_allhr$Hver_RBS)
-ggplot(pres_allhr, aes(x = Pd, y = Hver_RBS)) + geom_point(size = 2)+ geom_hline(yintercept = 1)
-length(which(pres_allhr$Hver_RBS <= 1))
+write.csv(pres_allhr, file = "Q_trac_allhr.csv", row.names = F)
 
-  ##create long dataframe by subsetting the columns with certain data types
-Q_allhr = data.frame(Pd = pres_allhr$Pd, pres_allhr[str_detect(names(pres_allhr), "_Q")])
-Depth_allhr
-width_allhr
+rm(list = ls()[!ls() %in% c("pres_allhr", "Q", "st_temps")])
 
 #Tractive forces equation: pgRS; p = 1000 kg/m3, g = 9.81 m/s, R = hydraulic radius (m),
 # S = gradient of the energy line (slope?? units??)

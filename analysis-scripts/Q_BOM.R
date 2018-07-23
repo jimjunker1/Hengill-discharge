@@ -1,17 +1,34 @@
 #Script to create estimates of Q, CV, Q.ct, power, etc for BOM chapter 
 source("./analysis-scripts/Qsubstrate.R")
+#about 2 mins
+####  Isolate all Q between 2011-July-31 and 2012-Aug-15 ####
 
-####  Isolate all Q between Oct-11 and Aug-12 ####
+Q_BOM <- subset(Q_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
+temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
+tforce_BOM = subset(tforce_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
+RBS_BOM = subset(RBS_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 
-Q_all$Pd <- as.POSIXct(paste(Q_all$Date), format = "%d-%m-%y", tz = "UTC")
-Q_BOM <- subset(Q_all, Pd >= as.POSIXct('2011-09-01') & Pd <= as.POSIXct('2012-08-15'))
+dfs = list(Q_BOM, temp_BOM, tforce_BOM, RBS_BOM)
+
+dfs = lapply(dfs, setNames, nm = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
+                             "st13","st14","st17","hver"))
 
 
-colnames(Q_BOM) <- c("Date", "Time", "ST1", "ST5", "ST6", "ST8", "ST9", 
- "ST11D", "ST13", "ST14", "ST17", "Hver", "Pd")
+colnames(Q_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
+                            "st13","st14","st17","hver")
+colnames(temp_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
+                            "st13","st14","st17","hver")
+colnames(tforce_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
+                                 "st13","st14","st17","hver")
+colnames(RBS_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
+                                 "st13","st14","st17","hver")
 
-Q_BOM.l <- melt(Q_BOM, id.vars = c("Date", "Time", "Pd"))
-colnames(Q_BOM.l) <- c("Date", "Time", "Pd", "Stream", "Discharge")
+dfs_l = melt(dfs, id = c("Pd"))
+
+
+
+Q_BOM.l <- melt(Q_BOM, id.vars = c("Pd"))
+colnames(Q_BOM.l) <- c("Pd", "Stream", "Discharge")
 
 Q_BOM.sum <- Q_BOM.l %>%
 	group_by(Stream) %>%

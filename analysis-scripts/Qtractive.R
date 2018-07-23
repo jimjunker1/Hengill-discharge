@@ -2,9 +2,33 @@
 source("./analysis-scripts/QDepth.R")
 
 st_temps <- read.csv("./stream-data/stream_temps1.csv",T,stringsAsFactors = F)
+st1.fix = which(st_temps$Stream == "ST1")
+st_temps[st1.fix, "Stream"] == "st1"
+st5.fix = which(st_temps$Stream == "ST5")
+st_temps[st5.fix, "Stream"] = "st5"
+st6.fix = which(st_temps$Stream == "ST6")
+st_temps[st6.fix, "Stream"] = "st6"
+st8.fix = which(st_temps$Stream == "ST8")
+st_temps[st8.fix, "Stream"] = "st8"
+st9.fix = which(st_temps$Stream == "ST9")
+st_temps[st9.fix, "Stream"] = "st9"
 st11L.fix = which(st_temps$Stream == "ST11D")
-st_temps[st11L.fix, "Stream"] = "ST11L";rm(st11L.fix)
+st_temps[st11L.fix, "Stream"] = "st11L";rm(st11L.fix)
+st11U.fix = which(st_temps$Stream == "ST11U")
+st_temps[st11U.fix, "Stream"] = "st11U"
+st13.fix = which(st_temps$Stream == "ST13")
+st_temps[st13.fix, "Stream"] = "st13"
+st14.fix = which(st_temps$Stream == "ST14")
+st_temps[st14.fix, "Stream"] = "st14"
+st17.fix = which(st_temps$Stream == "ST17")
+st_temps[st17.fix, "Stream"] = "st17"
+hver.fix = which(st_temps$Stream == "Hver")
+st_temps[hver.fix, "Stream"] = "hver"
+rm(c(st1.fix, st5.fix, st6.fix, st8.fix, st9.fix, st11l.fix,st11U.fix, st13.fix, st14.fix,
+     st17.fix, hver.fix))
 st_temps = data.frame(unclass(st_temps))
+
+
 #calculate tractive forces for all streams at all dates
 #need to estimate the hydraulic radius across all Q's and streams
 # to calculate hydraulic radius (Depth[m]*width[m])/(2*Depth[m] + width[m])
@@ -34,17 +58,17 @@ plot(pres_allhr$Hver_depthe, pres_allhr$Hver_Rh);abline(a=0,b=1)
 
 #calculate the tractive forces on each stream using the Rh series
 #units are N/m^2 --remove 9.807 to get to kg/m^2
-pres_allhr$st1_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST1")]/100)*pres_allhr$st1_Rh
-pres_allhr$st5_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST5")]/100)*pres_allhr$st5_Rh
-pres_allhr$st6_tforce = 1000*9.807*(st_temps$Slope[which(st_temps$Stream == "ST6")]/100)*pres_allhr$st6_Rh
-pres_allhr$st8_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST8")]/100)*pres_allhr$st8_Rh
-pres_allhr$st9_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST9")]/100)*pres_allhr$st9_Rh
-pres_allhr$st11L_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST11L")]/100)*pres_allhr$st11L_Rh
-pres_allhr$st11U_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST11U")]/100)*pres_allhr$st11U_Rh
-pres_allhr$st13_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST13")]/100)*pres_allhr$st13_Rh
-pres_allhr$st14_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST14")]/100)*pres_allhr$st14_Rh
-pres_allhr$st17_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "ST17")]/100)*pres_allhr$st17_Rh
-pres_allhr$Hver_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "Hver")]/100)*pres_allhr$Hver_Rh
+pres_allhr$st1_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st1")]/100)*pres_allhr$st1_Rh
+pres_allhr$st5_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st5")]/100)*pres_allhr$st5_Rh
+pres_allhr$st6_tforce = 1000*9.807*(st_temps$Slope[which(st_temps$Stream == "st6")]/100)*pres_allhr$st6_Rh
+pres_allhr$st8_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st8")]/100)*pres_allhr$st8_Rh
+pres_allhr$st9_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st9")]/100)*pres_allhr$st9_Rh
+pres_allhr$st11L_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st11L")]/100)*pres_allhr$st11L_Rh
+pres_allhr$st11U_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st11U")]/100)*pres_allhr$st11U_Rh
+pres_allhr$st13_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st13")]/100)*pres_allhr$st13_Rh
+pres_allhr$st14_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st14")]/100)*pres_allhr$st14_Rh
+pres_allhr$st17_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st17")]/100)*pres_allhr$st17_Rh
+pres_allhr$Hver_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "hver")]/100)*pres_allhr$Hver_Rh
 
 #critical force approximates the force to move sediment of x(mm): e.g. tforce of 16
 #is necessary to move sediment of 16mm
@@ -91,5 +115,3 @@ rm(list = ls()[!ls() %in% c("pres_allhr", "Q", "st_temps")])
 
 #Tractive forces equation: pgRS; p = 1000 kg/m3, g = 9.81 m/s, R = hydraulic radius (m),
 # S = gradient of the energy line (slope?? units??)
-
-

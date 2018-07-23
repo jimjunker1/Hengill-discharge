@@ -1,10 +1,12 @@
 #Script to create estimates of Q, CV, Q.ct, power, etc for BOM chapter 
+library(tictoc)
+tic()
 source("./analysis-scripts/Qsubstrate.R")
-#about 2 mins
+toc()#about 2 mins
 ####  Isolate all Q between 2011-July-31 and 2012-Aug-15 ####
 
 Q_BOM <- subset(Q_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
-temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
+temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'));temp_BOM[,c(5:6)] = NULL
 tforce_BOM = subset(tforce_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 RBS_BOM = subset(RBS_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 
@@ -13,39 +15,62 @@ dfs = list(Q_BOM, temp_BOM, tforce_BOM, RBS_BOM)
 dfs = lapply(dfs, setNames, nm = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
                              "st13","st14","st17","hver"))
 
+dfs_l = lapply(dfs, function(x) melt(x, id = c("Pd")))
 
-colnames(Q_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
-                            "st13","st14","st17","hver")
-colnames(temp_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
-                            "st13","st14","st17","hver")
-colnames(tforce_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
-                                 "st13","st14","st17","hver")
-colnames(RBS_BOM) = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
-                                 "st13","st14","st17","hver")
-
-dfs_l = melt(dfs, id = c("Pd"))
-
-
-
-Q_BOM.l <- melt(Q_BOM, id.vars = c("Pd"))
-colnames(Q_BOM.l) <- c("Pd", "Stream", "Discharge")
+Q_BOM.l = data.frame(dfs_l[1])
+colnames(Q_BOM.l) <- c("Pd", "Stream", "Q")
+head(Q_BOM.l)
+temp_BOM.l = data.frame(dfs_l[2])
+colnames(temp_BOM.l) <- c("Pd", "Stream", "temp")
+head(temp_BOM.l);tail(temp_BOM.l)
+tforce_BOM.l = data.frame(dfs_l[3])
+colnames(tforce_BOM.l) = c("Pd", "Stream", "tforce")
+RBS_BOM.l = data.frame(dfs_l[4])
+colnames(RBS_BOM.l) = c("Pd", "Stream", "RBS")
 
 Q_BOM.sum <- Q_BOM.l %>%
 	group_by(Stream) %>%
-	summarize(median = median(Discharge, na.rm = T))
+	summarize(median_Q = median(Q, na.rm = T))
 
-st_temps.feb <- st_temps[which(st_temps$Date == "Feb"),]
+CV_BOM.sum = Q_BOM.l %>%
+  group_by(Stream) %>%
+  summarize(CV = (sd(Q,na.rm = T)/mean(Q,na.rm = T)))
+st13_cv.fix = which(CV_BOM.sum$Stream == "st13")
+CV_BOM.sum[st13_cv.fix, "CV"] = (1.6/14.6)
+  
+temp_BOM.sum = temp_BOM.l %>%
+  group_by(Stream) %>%
+  summarize(mean_temp = mean(temp, na.rm = T))
 
+tforce_BOM.sum = tforce_BOM.l %>%
+  group_by(Stream) %>%
+  summarize(median_tforce = median(tforce, na.rm = T))
+
+RBS_BOM.sum = RBS_BOM.l %>%
+  group_by(Stream) %>%
+  summarize(RBS = median(RBS, na.rm = T))
+
+sed_BOM.sum = sediment %>%
+  group_by(Stream) %>%
+  summarize(substrate = median(Size, na.rm = T))
+
+st_temps_pt1 = Reduce(function(...) merge(..., all = T), list(Q_BOM.sum, CV_BOM.sum,
+                                                              temp_BOM.sum, tforce_BOM.sum,
+                                                              RBS_BOM.sum, sed_BOM.sum))
+
+st_temps_pt2 = st_temps[which(st_temps$Date == "Jul"),c(1:2,12:13,17:18)]
+
+
+
+########    
 Q_BOM.l <- merge(Q_BOM.l, st_temps.feb, by = c("Stream"))
 
 Q_BOM.l <- Q_BOM.l[,c(1:5,7:11)]
 colnames(Q_BOM.l) <- c("Stream", "Date", "Time", "Pd", "Discharge", "Temp", "Slope", "CV", "substrate", "temp.mean")
 
-Q_BOM.l <- transform(Q_BOM.l, power = 9800 * (Discharge/1000) * (Slope/100))
-
+Q_BOM.l <- transform(Q_BOM.l, power = 9800 * (Q/1000) * (Slope/100))
 
 ##now merging the new measure of Q.ct and max power with st_temps to use in BOM analysis
-
 Q_BOM.l <- merge(Q_BOM.l, Q_BOM.sum, by = c("Stream"))
 
 Q_BOM.jul <- subset(Q_BOM.l, Pd >= as.POSIXct('2012-02-01') & Pd <= as.POSIXct('2012-08-15'))

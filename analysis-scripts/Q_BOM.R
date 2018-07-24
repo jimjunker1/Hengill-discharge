@@ -4,7 +4,6 @@ tic()
 source("./analysis-scripts/Qsubstrate.R")
 toc()#about 3 mins
 ####  Isolate all Q between 2011-July-31 and 2012-Aug-15 ####
-
 Q_BOM <- subset(Q_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'));temp_BOM[,c(5:6)] = NULL
 tforce_BOM = subset(tforce_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
@@ -19,7 +18,6 @@ dfs_l = lapply(dfs, function(x) melt(x, id = c("Pd")))
 
 Q_BOM.l = data.frame(dfs_l[1])
 colnames(Q_BOM.l) <- c("Pd", "Stream", "Q")
-
 head(Q_BOM.l)
 temp_BOM.l = data.frame(dfs_l[2])
 colnames(temp_BOM.l) <- c("Pd", "Stream", "temp")
@@ -29,6 +27,7 @@ colnames(tforce_BOM.l) = c("Pd", "Stream", "tforce")
 RBS_BOM.l = data.frame(dfs_l[4])
 colnames(RBS_BOM.l) = c("Pd", "Stream", "RBS")
 
+st_temps$Stream = factor(st_temps$Stream, levels = levels(Q_BOM.l$Stream))
 rm("dfs","dfs_l");gc()
 
 Q_BOM.sum <- Q_BOM.l %>%
@@ -37,7 +36,7 @@ Q_BOM.sum <- Q_BOM.l %>%
   mutate(power = 9800*(Q/1000)*(Slope/100)) %>%
 	summarize(median_Q = median(Q, na.rm = T), max.power = max(power, na.rm = T),
 	          max_Q = max(Q, na.rm = T), CV = (sd(Q,na.rm = T)/mean(Q,na.rm = T)))
-Q_BOM.sum[st13_cv.fix, "CV"] = (1.6/14.6)
+st13_cv.fix = which(Q_BOM.sum$Stream == "st13");Q_BOM.sum[st13_cv.fix, "CV"] = (1.6/14.6)
 
 temp_BOM.sum = temp_BOM.l %>%
   group_by(Stream) %>%
@@ -57,11 +56,10 @@ sed_BOM.sum = sediment %>%
 #sed_add = data.frame(Stream = c("st8", "hver"), substrate = c(33.8,11.6))
 #sed_BOM.sum = rbind(sed_BOM.sum,sed_add)
 
-
 st_temps_pt1 = Reduce(function(...) merge(..., all = T), list(Q_BOM.sum, temp_BOM.sum, 
                                                 tforce_BOM.sum, RBS_BOM.sum, sed_BOM.sum))
 
-st_temps_pt2 = st_temps[which(st_temps$Date == "Jul"),c(1,12:13,17:18)]
+st_temps_pt2 = st_temps[which(st_temps$Date == "Jul"),c(1,4,12:13,17:18)]
 
 st_temps.j = merge(st_temps_pt1, st_temps_pt2, by = "Stream")
 

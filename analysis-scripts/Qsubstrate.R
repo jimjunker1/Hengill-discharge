@@ -2,7 +2,6 @@
 ######  breaking down the metrics into individual files. #######
 source("./analysis-scripts/Qtractive.R")
 ###  Loading the required packages  ###
-library(stringr)
 theme_set(theme_bw(20))
 ### Load in the substrate file  ####
 sediment <- read.csv(file = "./stream-data/substrate-size.csv", T, stringsAsFactors = F)

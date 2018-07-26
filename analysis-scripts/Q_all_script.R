@@ -115,7 +115,15 @@ pres_allhr$Pd = as.POSIXct(pres_allhr$Pd,format = "%Y-%m-%d %H:%M:%S", tz = "UTC
 #merge with hourly light
 pres_allhr = merge(pres_allhr, lightmodhr_d, by = "Pd", all = T)
 #convert times to posix object
+#lightmodd_d = aggregate(lightmodhr_d['light.est'], list(Pd = cut(lightmodhr_d$Pd, breaks = "day")),
+#                        sum, na.rm = T)
+#colnames(lightmodd_d)[2] = "light.day"
+#lightmodd_d$day = as.factor(as.POSIXct(lightmodd_d$Pd, format = "%Y-%m-%d"))
 
+#pres_allhr$day = as.factor(format(as.POSIXct(pres_allhr$Pd, format = "%Y-%m-%d %H:%M:%S"),format = "%Y-%m-%d"))
+#pres_allhr = merge(pres_allhr, lightmodd_d[c("day","light.day")], by = "day")
+
+#pres_allhr[c("day")] = NULL;pres_allhr = pres_allhr[order(pres_allhr$Pd),]
 #####################################################################################################################
 
 ############################################################################################
@@ -192,25 +200,18 @@ dx <- vapply(index(Q1z), f, integer(1))
 QP <- cbind(Qw1, st1_depthm = coredata(st1_depthm) [dx])
 Q1_full <- data.frame(QP)
 
-f <- function(u) which.min(abs(as.numeric(index(lightmod)) - as.numeric(u)))
-dx <- vapply(index(Q1z), f, integer(1))
-QP <- cbind(Q1_full, cum.light = coredata(lightmod) [dx])
-Q1_full <- data.frame(QP)
+Q1_full_mod = Q1_full[-c(7:9),]
 
-summer1 <- 	ifelse(as.numeric(format(Q1_full$Pd, "%m")) >= 6 & as.numeric(format(Q1_full$Pd, "%m")) <= 9, 1, 0)
-Q1_full <- cbind(Q1_full, summer1)
+sm_rating1 = lm(log(Q.mod)~log(st1_depthm), Q1_full_mod)
 
-Q1_full_mod = Q1_full[-9,]
-
-sm_rating1 <- lm(log(Q.mod) ~ log(st1_depthm) + cum.light + I(cum.light^2), Q1_full_mod); summary(sm_rating1)
-
-pres_allhr$summer1 <- as.factor(ifelse(as.numeric(format(pres_allhr$Pd, "%m")) >= 6 & as.numeric(format(pres_allhr$time, "%m")) <= 10, 1, 0))
+Q1_full_mod$fitted = fitted(sm_rating1)
+ggplot(Q1_full_mod, aes(x = exp(fitted), y = Q.mod)) + geom_point(size = 5) +
+  geom_abline(intercept = 0, slope = 1)
 
 pres_allhr$st1_Q = exp(predict(sm_rating1, pres_allhr))
 
-pres_allhr$summer1 = NULL
+ggplot(pres_allhr, aes(x = Pd, y = st1_Q)) + geom_point(size = 3) +coord_cartesian(ylim = c(0,1000))
 
-ggplot(pres_allhr, aes(x = Pd, y = st1_Q)) + geom_point(size = 3)
 #ST5
 Q5 <- Q[which(Q$Qstream == "st5"),]
 Q5 <- Q5[!is.na(Q5$Q.mod),]

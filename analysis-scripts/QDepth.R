@@ -162,10 +162,10 @@ st17 <- LWAD_full[which(LWAD_full$stream == "st17"),]
 hver <- LWAD_full[which(LWAD_full$stream == "Hver"),]
 
 ############Modeling width-discharge for all streams########
-st1_mod = st1[-which(st1$Q >= 2000),]
-st1.plot <- ggplot(st1_mod, aes(x = Qm3, y = width/100)) + geom_point(size = 5); st1.plot
+st1_mod = st1[-6,]
+st1.plot <- ggplot(st1_mod, aes(x = log(Qm3), y = log(width))) + geom_point(size = 5); st1.plot
 st1.lm <- lm(log(width) ~ log(Qm3), data = st1_mod); summary(st1.lm)
-st1.lm2 = lm(log(width)~log(Q.mod/1000), data = st1_mod);summary(st1.lm2)
+st1.lm2 = lm(width~Q.mod, data = st1_mod);summary(st1.lm2)
 #this is in meters m3/s 
 #st5
 st5.plot <- ggplot(st5, aes(x =log(Qm3), y = log(width))) + geom_point(size = 5) + stat_smooth(method = "lm", se = F); st5.plot
@@ -311,8 +311,7 @@ hverd.plot <- ggplot(hver, aes(x = Q.mod, y = m_depth)) + geom_point();hverd.plo
 #Now take the estimated Widths and estimated travel times and add to discharge object: Q_all
 ##relisting all the regressions used for tt and widths
 ###Widths
-st1_mod = st1[-which(st1$Q >= 2000),]
-w_rating1 <- lm(log(width) ~ log(Q.mod/1000), data = st1_mod); summary(w_rating1)
+w_rating1 <- lm(log(width) ~ log(Qm3), data = st1_mod); summary(st1.lm)
 w_rating5 <- lm(log(width) ~ log(Q.mod/1000), data = st5); summary(st5.lm)
 #w_rating6 = 155.9*(Q.mod/1000)/(0.002685+(Q.mod/1000))##use this
 w_rating8 <- mean(st8$width, na.rm = T)
@@ -356,8 +355,11 @@ tt_ratinghver<- lm(log(travel_time_secs)~log(Q.mod/1000), data = hverQ);summary(
 
 
 ###estimating width and tt.s with discharge
-colnames(pres_allhr)[30] = "Q.mod"
-pres_allhr$st1_width <- exp(predict(w_rating1, pres_allhr));hist(pres_allhr$st1_width)
+colnames(pres_allhr)[30] = "Qm3"
+pres_allhr$Qm3 = pres_allhr$Qm3/1000
+pres_allhr$st1_width <- exp(predict(w_rating1, pres_allhr));hist(pres_allhr$st1_width/100)
+pres_allhr$Qm3 = pres_allhr$Qm3*1000
+colnames(pres_allhr)[30]= "Q.mod"
 pres_allhr$st1_tt.s <- exp(predict(tt_rating1, pres_allhr));hist(pres_allhr$st1_tt.s)
 colnames(pres_allhr)[30] = "st1_Q"
 
@@ -426,7 +428,7 @@ pres_allhr <- transform(pres_allhr, st17_length = mean(st17$lg_m, na.rm = T))
 pres_allhr <- transform(pres_allhr, Hver_length = mean(hver$lg_m, na.rm = T))
 
 ### modeling depth with discharge, travel time, width, and length 
-#units = Depth(m) = (m3/s * s)/((cm/100) * m)
+#units = Depth(m) = (m3/s * s/1)/((cm/100) * m)
 pres_allhr$st1_depthe = ((pres_allhr$st1_Q/1000)*pres_allhr$st1_tt.s)/((pres_allhr$st1_width/100)*pres_allhr$st1_length)
 pres_allhr$st5_depthe = ((pres_allhr$st5_Q/1000)*pres_allhr$st5_tt.s)/((pres_allhr$st5_width/100)*pres_allhr$st5_length)
 pres_allhr$st6_depthe = ((pres_allhr$st6_Q/1000)*pres_allhr$st6_tt.s)/((pres_allhr$st6_width/100)*pres_allhr$st6_length)
@@ -445,7 +447,7 @@ ggplot(pres_allhr, aes( x = st1_depthe*100)) +
   geom_histogram(data = st1, aes(x = m_depth, y = ..density..), fill = "red")
 
 ggplot(pres_allhr, aes(x = st1_Q/1000, y = st1_depthe*100)) + geom_point(size = 3)
-ggplot(pres_allhr, aes(x = st1_Q/1000, y = st1_width/100)) + geom_point(size = 3) + coord_cartesian(xlim = c(0,0.05), ylim = c(1,2.5))
+ggplot(pres_allhr, aes(x = st1_Q/1000, y = st1_width/100)) + geom_point(size = 3) +geom_vline(xintercept = median(st1_Q/1000,na.rm = T))#+ coord_cartesian(xlim = c(0,0.05), ylim = c(1,2.5))
 
 ggplot(pres_allhr, aes( x = st5_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
@@ -505,11 +507,12 @@ ggplot(pres_allhr, aes(x = Hver_Q/1000, y = Hver_depthe*100)) + geom_point(size 
 ##save this file
 write.csv(pres_allhr, file = "./output-files/Q-char_all_fin.csv", row.names = F)
 
+rm(list = ls()[!ls() %in% c("pres_allhr", "Q")])
+
 ############ Old code repository ##############3
 ### Code to select just Q columns from pres_allhr
-Q_allhr = data.frame(Pd = pres_allhr$Pd, pres_allhr[str_detect(names(pres_allhr), "_Q")])
+#Q_allhr = data.frame(Pd = pres_allhr$Pd, pres_allhr[str_detect(names(pres_allhr), "_Q")])
 
 
-rm(list = ls()[!ls() %in% c("pres_allhr", "Q")])
 
 

@@ -335,10 +335,12 @@ Q11L_full <- data.frame(QP)
 Q11L_full_mod <- Q11L_full[!is.na(Q11L_full$st11L_depthm),]
 Q11L_full_mod = Q11L_full_mod[-1,]
 
-sm_rating11L <- lm(log(Q.mod) ~ log(st11L_depthm) + log(st7L_depthm), Q11L_full_mod); summary(sm_rating11L)
+sm_rating11L <- lm(log(Q.mod) ~ log(st11L_depthm), Q11L_full_mod); summary(sm_rating11L)
+
+ggplot(Q11L_full_mod, aes(Q.mod, x = st11L_depthm)) +geom_point(size = 2)
 
 pres_allhr$st11L_Q = exp(predict(sm_rating11L, pres_allhr))
-Q.fix  = which(pres_allhr$st11L_Q >= 15000)
+Q.fix  = which(pres_allhr$st11L_Q >= 10000)
 pres_allhr[Q.fix, "st11L_Q"] = NA
 
 ggplot(pres_allhr, aes(x = Pd, y = st11L_Q)) + geom_point(size = 3)
@@ -384,7 +386,7 @@ pres_allhr[depths_d17, "st11U_Q"] = exp(predict(sm_rating11U2, pres_allhr[depths
 ggplot(pres_allhr, aes(x = Pd, y = st11U_Q)) + geom_point(size = 3)
 
 Q.fix = which(pres_allhr$st11U_Q >= 1000)
-pres_allhr[Q.fix, "st11U_Q"] = 1000
+pres_allhr[Q.fix, "st11U_Q"] = NA
 #ST13
 
 ######## For ST13 use the Q.mod for the measures ######
@@ -416,7 +418,7 @@ dx <- vapply(index(Q14z), f, integer(1))
 QP <- cbind(Qw14, st14_depthm = coredata(st14_depthm) [dx])
 Q14_full <- data.frame(QP)
 
-sm_rating14 <- lm(log(Q.mod) ~ log(st14_depthm) + st14_tempC, Q14_full); summary(sm_rating14)
+sm_rating14 <- lm(log(Q.mod) ~ log(st14_depthm) * st14_tempC, Q14_full); summary(sm_rating14)
 
 pres_allhr$st14_Q = exp(predict(sm_rating14, pres_allhr))
 
@@ -446,6 +448,8 @@ pres_allhr$st17_Q = exp(predict(sm_rating17, pres_allhr))
 
 ggplot(pres_allhr, aes(x = Pd, y = st17_Q)) + geom_point(size = 3)
 
+st17.fix = which(pres_allhr$st17_Q >= 30000)
+pres_allhr[st17.fix, "st17_Q"] = NA
 #HVER
 
 QHver <- Q[which(Q$Qstream == "hver"),]

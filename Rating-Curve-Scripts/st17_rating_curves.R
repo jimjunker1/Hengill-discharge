@@ -299,12 +299,12 @@ ggplot(depths, aes(x = L_tempC, y = st17_depthm))+
 	
 	#T_warm_tt <- t.test(T_US_PD ~ warming, Q); T_warm_tt
 
-sm_rating17 <- lm(log(Q.mod) ~ log(d17) + temp_17, Q17_full_mod); summary(sm_rating17)
-sm_rating17_mod <- lm(log(Q.mod) ~ log(d17), Q17_full_mod); summary(sm_rating17_mod)
+sm_rating17_mod <- lm(log(Q.mod) ~ log(d17) + temp_17, Q17_full_mod); summary(sm_rating17)
+sm_rating17 <- lm(log(Q.mod) ~ log(d17), Q17_full_mod); summary(sm_rating17_mod)
 				
 # # 				
 
-	Q17_full_mod$fitted <- fitted(sm_rating17_mod)
+	Q17_full_mod$fitted <- fitted(sm_rating17)
 	ggplot(Q17_full_mod, aes(x = fitted, y =log(Q.mod)))+
 		geom_point()+
 		geom_abline(intercept = 0, slope = 1)

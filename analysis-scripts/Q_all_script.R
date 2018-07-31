@@ -202,13 +202,17 @@ Q1_full <- data.frame(QP)
 
 Q1_full_mod = Q1_full[-c(7:9),]
 
-sm_rating1 = lm(log(Q.mod)~log(st1_depthm), Q1_full_mod)
+ggplot(Q1_full_mod, aes(y = Q.mod, x = st1_depthm)) + geom_point(size = 2)
 
-Q1_full_mod$fitted = fitted(sm_rating1)
-ggplot(Q1_full_mod, aes(x = exp(fitted), y = Q.mod)) + geom_point(size = 5) +
+sm_rating1 = lm(Q.mod~st1_depthm, Q1_full_mod)
+sm_seg1 = segmented::segmented(sm_rating1, seg.Z = ~st1_depthm)
+plot(sm_seg1)
+
+Q1_full_mod$fitted = fitted(sm_seg1)
+ggplot(Q1_full_mod, aes(x = fitted, y = Q.mod)) + geom_point(size = 5) +
   geom_abline(intercept = 0, slope = 1)
 
-pres_allhr$st1_Q = exp(predict(sm_rating1, pres_allhr))
+pres_allhr$st1_Q = predict(sm_rating1, pres_allhr)
 
 ggplot(pres_allhr, aes(x = Pd, y = st1_Q)) + geom_point(size = 3) +coord_cartesian(ylim = c(0,1000))
 

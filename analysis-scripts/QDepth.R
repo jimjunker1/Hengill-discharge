@@ -134,7 +134,7 @@ colnames(LWAD_full) = c("Pd", "stream", "date", "width", "m_depth", "area", "lg_
 	###Width###
 Q_width.plot <- ggplot(LWAD_full, aes(x = log(Q), y = width, colour = stream)) + geom_point(size = 5); Q_width.plot
 
-Q_width.plot + aes(colour = stream) + geom_smooth(method = "lm",se = F)
+#Q_width.plot + aes(colour = stream) + geom_smooth(method = "lm",se = F)
 	###Travel time####
 Q_tt.plot <- ggplot(LWAD_full, aes(x = log(Qm3), y = log(tt.s))) + geom_point(size = 5); Q_tt.plot
 

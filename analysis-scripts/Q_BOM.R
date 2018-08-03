@@ -9,8 +9,9 @@ temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct(
 tforce_BOM = subset(tforce_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 RBS_BOM = subset(RBS_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 depthe_BOM = subset(depth_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
+ins_BOM = subset(ins_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
 
-dfs = list(Q_BOM, temp_BOM, tforce_BOM, RBS_BOM, depthe_BOM)
+dfs = list(Q_BOM, temp_BOM, tforce_BOM, RBS_BOM, depthe_BOM, ins_BOM)
 
 dfs = lapply(dfs, setNames, nm = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
                              "st13","st14","st17","hver"))
@@ -29,6 +30,8 @@ RBS_BOM.l = data.frame(dfs_l[4])
 colnames(RBS_BOM.l) = c("Pd", "Stream", "RBS")
 depthe_BOM.l = data.frame(dfs_l[5])
 colnames(depthe_BOM.l) = c("Pd", "Stream", "depth")
+ins_BOM.l = data.frame(dfs_l[6])
+colnames(ins_BOM.l) = c("Pd", "Stream", "instability")
 
 st_temps$Stream = factor(st_temps$Stream, levels = levels(Q_BOM.l$Stream))
 rm("dfs","dfs_l");gc()
@@ -63,9 +66,13 @@ depth_BOM.sum = depthe_BOM.l %>%
 #sed_add = data.frame(Stream = c("st8", "hver"), substrate = c(33.8,11.6))
 #sed_BOM.sum = rbind(sed_BOM.sum,sed_add)
 
+ins_BOM.sum = ins_BOM.l %>%
+  group_by(Stream) %>%
+  summarize(instability = median(instability, na.rm = T))
+
 st_temps_pt1 = Reduce(function(...) merge(..., all = T), list(Q_BOM.sum, temp_BOM.sum, 
                                                 tforce_BOM.sum, RBS_BOM.sum, sed_BOM.sum,
-                                                depth_BOM.sum))
+                                                depth_BOM.sum, ins_BOM.sum))
 
 st_temps_pt2 = st_temps[which(st_temps$Date == "Jul"),c(1,4,12:13,17:18)]
 

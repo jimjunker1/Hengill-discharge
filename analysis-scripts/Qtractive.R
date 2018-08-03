@@ -55,7 +55,7 @@ pres_allhr$Hver_Rh = (pres_allhr$Hver_depthe*(pres_allhr$Hver_width/100))/(2*pre
 #plot(pres_allhr$Hver_depthe, pres_allhr$Hver_Rh);abline(a=0,b=1)
 
 #calculate the tractive forces on each stream using the Rh series
-#units are N/m^2 --remove 9.807 to get to kg/m^2
+#units are N/m^2 --remove 9.807 to get to kg/m^2 which approximates force to move in cm
 pres_allhr$st1_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st1")]/100)*pres_allhr$st1_Rh
 ggplot(pres_allhr, aes(x = st1_Q, st1_tforce)) + geom_point(size = 3)
 pres_allhr$st5_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st5")]/100)*pres_allhr$st5_Rh

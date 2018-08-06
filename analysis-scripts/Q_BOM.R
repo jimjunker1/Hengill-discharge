@@ -55,7 +55,7 @@ tforce_BOM.sum = tforce_BOM.l %>%
 
 RBS_BOM.sum = RBS_BOM.l %>%
   group_by(Stream) %>%
-  summarize(RBS = median(RBS, na.rm = T))
+  summarize(RBS = mean(RBS, na.rm = T))
 
 sed_BOM.sum = sediment %>%
   group_by(Stream) %>%

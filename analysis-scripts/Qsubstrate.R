@@ -134,7 +134,7 @@ pres_allhr$Hver_RBS = (0.155*sqrt(11.6))/(0.7*pres_allhr$Hver_vel)
 #mean(pres_allhr$Hver_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$Hver_ins = pres_allhr$Hver_tforce/11.6
-hist(pres_allhr$Hver_ins);median(pres_allhr$Hver_ins,na.rm = T)
+hist(pres_allhr$Hver_ins);mean(pres_allhr$Hver_ins,na.rm = T)
 
 ####  
 Q_allhr = data.frame(Pd = pres_allhr$Pd, pres_allhr[str_detect(names(pres_allhr), "_Q")])

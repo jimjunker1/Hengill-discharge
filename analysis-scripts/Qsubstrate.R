@@ -155,4 +155,4 @@ write.csv(RBS_allhr, file = "./stream-data/RBS_allhr.csv", row.names = F)
 write.csv(vel_allhr, file = "./stream-data/vel_allhr.csv", row.names = F)
 ###
 
-rm(list = ls()[!ls() %in% c("st_temps","Q_allhr","depth_allhr","RBS_allhr","sediment","tforce_allhr","temp_allhr", "ins_allhr")])
+rm(list = ls()[!ls() %in% c("st_temps","Q_allhr","depth_allhr","RBS_allhr","sediment","tforce_allhr","temp_allhr", "ins_allhr", "vel_allhr")])

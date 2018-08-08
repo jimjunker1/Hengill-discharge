@@ -204,18 +204,34 @@ Q1_full_mod = Q1_full[-c(7:9),]
 
 ggplot(Q1_full_mod, aes(y = Q.mod, x = st1_depthm)) + geom_point(size = 2)
 
-sm_rating1 = lm(Q.mod~st1_depthm, Q1_full_mod)
+sm_rating1 = lm(Q.mod~st1_depthm, Q1_full_mod);summary(sm_rating1)
 sm_seg1 = segmented::segmented(sm_rating1, seg.Z = ~st1_depthm)
-plot(sm_seg1)
+plot(sm_seg1);summary(sm_seg1)
+segmented::slope(sm_seg1)
+##### model to see where it goes negative ####
+#x = data.frame( st1_depthm = seq(min(pres_allhr$st1_depthm, na.rm = T), max(pres_allhr$st1_depthm, na.rm = T), 0.005))
+#x$y = predict(sm_rating1, x)
+
+#plot(y~st1_depthm, data = x);abline(a =0,b=0)
+#max(x$y)
+####
 
 Q1_full_mod$fitted = fitted(sm_seg1)
 ggplot(Q1_full_mod, aes(x = fitted, y = Q.mod)) + geom_point(size = 5) +
   geom_abline(intercept = 0, slope = 1)
 
-pres_allhr$st1_Q = predict(sm_rating1, pres_allhr)
+#pres_allhr$st1_Q = predict(sm_rating1, pres_allhr)
 
-ggplot(pres_allhr, aes(x = Pd, y = st1_Q)) + geom_point(size = 3) +coord_cartesian(ylim = c(0,1000))
+pres_allhr$st1_Q = NA
 
+depths_seg = which(st1_depthm >= 0.35125)
+depths_est = which(st1_depthm < 0.35125)
+
+pres_allhr[depths_seg, 'st1_Q'] = predict(sm_seg1, pres_allhr[depths_seg,])
+pres_allhr[depths_est, 'st1_Q'] = (22.86*pres_allhr[depths_est,'st1_depthm']) 
+
+ggplot(pres_allhr, aes(x = Pd, y = st1_Q)) + geom_point(size = 3) +coord_cartesian(ylim = c(0,150))
+max(pres_allhr$st1_Q, na.rm =T)
 #ST5
 Q5 <- Q[which(Q$Qstream == "st5"),]
 Q5 <- Q5[!is.na(Q5$Q.mod),]
@@ -280,9 +296,9 @@ dx <- vapply(index(Q8z), f, integer(1))
 QP <- cbind(Qw8, st8_depthm = coredata(st8_depthm) [dx])
 Q8_full <- data.frame(QP)
 Q8_full_mod <- Q8_full[which(Q8_full$Q.mod <= 40),]
-
+ggplot(Q8_full_mod, aes(y = st8_depthm, x = Q.mod)) + geom_point(size = 2)
 sm_rating8 <- lm(log(Q.mod) ~ log(st8_depthm) + st8_tempC, Q8_full_mod); summary(sm_rating8)
-
+mean(Q8_full_mod$Q.mod, na.rm = T);sd(Q8_full_mod$Q.mod, na.rm = T)
 pres_allhr$st8_Q = exp(predict(sm_rating8, pres_allhr))
 
 ggplot(pres_allhr, aes(x = Pd, y = st8_Q)) + geom_point(size = 3)

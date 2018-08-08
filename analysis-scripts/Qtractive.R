@@ -56,28 +56,29 @@ pres_allhr$Hver_Rh = (pres_allhr$Hver_depthe*(pres_allhr$Hver_width/100))/(2*pre
 
 #calculate the tractive forces on each stream using the Rh series
 #units are N/m^2 --remove 9.807 to get to kg/m^2 which approximates force to move in cm
+
 pres_allhr$st1_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st1")]/100)*pres_allhr$st1_Rh
-ggplot(pres_allhr, aes(x = st1_Q, st1_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st1_Q, st1_tforce)) + geom_point(size = 3)
 pres_allhr$st5_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st5")]/100)*pres_allhr$st5_Rh
-ggplot(pres_allhr, aes(x = st5_Q, st5_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st5_Q, st5_tforce)) + geom_point(size = 3)
 pres_allhr$st6_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st6")]/100)*pres_allhr$st6_Rh
-ggplot(pres_allhr, aes(x = st6_Q, st6_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st6_Q, st6_tforce)) + geom_point(size = 3)
 pres_allhr$st8_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st8")]/100)*pres_allhr$st8_Rh
-ggplot(pres_allhr, aes(x = st8_Q, st8_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st8_Q, st8_tforce)) + geom_point(size = 3)
 pres_allhr$st9_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st9")]/100)*pres_allhr$st9_Rh
-ggplot(pres_allhr, aes(x = st9_Q, st9_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st9_Q, st9_tforce)) + geom_point(size = 3)
 pres_allhr$st11L_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st11L")]/100)*pres_allhr$st11L_Rh
-ggplot(pres_allhr, aes(x = st11L_Q, st11L_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st11L_Q, st11L_tforce)) + geom_point(size = 3)
 pres_allhr$st11U_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st11U")]/100)*pres_allhr$st11U_Rh
-ggplot(pres_allhr, aes(x = st11U_Q, st11U_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st11U_Q, st11U_tforce)) + geom_point(size = 3)
 pres_allhr$st13_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st13")]/100)*pres_allhr$st13_Rh
-ggplot(pres_allhr, aes(x = st13_Q, st13_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st13_Q, st13_tforce)) + geom_point(size = 3)
 pres_allhr$st14_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st14")]/100)*pres_allhr$st14_Rh
-ggplot(pres_allhr, aes(x = st14_Q, st14_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st14_Q, st14_tforce)) + geom_point(size = 3)
 pres_allhr$st17_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "st17")]/100)*pres_allhr$st17_Rh
-ggplot(pres_allhr, aes(x = st17_Q, st17_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = st17_Q, st17_tforce)) + geom_point(size = 3)
 pres_allhr$Hver_tforce = 1000*9.807*unique(st_temps$Slope[which(st_temps$Stream == "hver")]/100)*pres_allhr$Hver_Rh
-ggplot(pres_allhr, aes(x = Hver_Q, Hver_tforce)) + geom_point(size = 3)
+#ggplot(pres_allhr, aes(x = Hver_Q, Hver_tforce)) + geom_point(size = 3)
 
 #critical force approximates the force to move sediment of x(mm): e.g. tforce of 16
 #is necessary to move sediment of 16mm

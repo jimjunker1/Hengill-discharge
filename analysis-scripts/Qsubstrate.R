@@ -42,7 +42,7 @@ pres_allhr$st1_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "
 #median(pres_allhr$st1_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st1_ins = pres_allhr$st1_tforce/(median(sediment$Size[which(sediment$Stream == "st1")]))
-hist(pres_allhr$st1_ins);median(pres_allhr$st1_ins,na.rm = T)
+#hist(pres_allhr$st1_ins);median(pres_allhr$st1_ins,na.rm = T)
 
 pres_allhr$st5_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st5")])))/(0.7*pres_allhr$st5_vel)
 #hist(pres_allhr$st5_RBS)
@@ -52,7 +52,7 @@ pres_allhr$st5_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "
 #mean(pres_allhr$st5_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st5_ins = pres_allhr$st5_tforce/(median(sediment$Size[which(sediment$Stream == "st5")]))
-hist(pres_allhr$st5_ins);median(pres_allhr$st5_ins,na.rm = T)
+#hist(pres_allhr$st5_ins);median(pres_allhr$st5_ins,na.rm = T)
 
 pres_allhr$st6_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st6")])))/(0.7*pres_allhr$st6_vel)
 #hist(pres_allhr$st6_RBS)
@@ -62,7 +62,7 @@ st6_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st6")])))/(
 #mean(pres_allhr$st6_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st6_ins = pres_allhr$st6_tforce/(median(sediment$Size[which(sediment$Stream == "st6")]))
-hist(pres_allhr$st6_ins);median(pres_allhr$st6_ins,na.rm = T)
+#hist(pres_allhr$st6_ins);median(pres_allhr$st6_ins,na.rm = T)
 
 pres_allhr$st8_RBS = (0.155*sqrt(33.8))/(0.7*pres_allhr$st8_vel)
 #hist(pres_allhr$st8_RBS)
@@ -70,8 +70,8 @@ pres_allhr$st8_RBS = (0.155*sqrt(33.8))/(0.7*pres_allhr$st8_vel)
 #length(which(pres_allhr$st8_RBS < 1))
 #mean(pres_allhr$st8_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
-pres_allhr$st8_ins = pres_allhr$st8_tforce/33.8
-hist(pres_allhr$st8_ins);median(pres_allhr$st8_ins,na.rm = T)
+pres_allhr$st8_ins = pres_allhr$st8_tforce/40.3
+#hist(pres_allhr$st8_ins);median(pres_allhr$st8_ins,na.rm = T)
 
 pres_allhr$st9_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st9")])))/(0.7*pres_allhr$st9_vel)
 #hist(pres_allhr$st9_RBS)
@@ -80,7 +80,7 @@ pres_allhr$st9_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "
 #mean(pres_allhr$st9_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st9_ins = pres_allhr$st9_tforce/(median(sediment$Size[which(sediment$Stream == "st9")]))
-hist(pres_allhr$st9_ins);median(pres_allhr$st9_ins,na.rm = T)
+#hist(pres_allhr$st9_ins);median(pres_allhr$st9_ins,na.rm = T)
 
 pres_allhr$st11L_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st11L")])))/(0.7*pres_allhr$st11L_vel)
 #hist(pres_allhr$st11L_RBS)
@@ -89,7 +89,7 @@ pres_allhr$st11L_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream ==
 #mean(pres_allhr$st11L_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st11L_ins = pres_allhr$st11L_tforce/(median(sediment$Size[which(sediment$Stream == "st11L")]))
-hist(pres_allhr$st11L_ins);median(pres_allhr$st11L_ins,na.rm = T)
+#hist(pres_allhr$st11L_ins);median(pres_allhr$st11L_ins,na.rm = T)
 
 pres_allhr$st11U_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st11U")])))/(0.7*pres_allhr$st11U_vel)
 #hist(pres_allhr$st11U_RBS)
@@ -98,7 +98,7 @@ pres_allhr$st11U_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream ==
 #mean(pres_allhr$st11U_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st11U_ins = pres_allhr$st11U_tforce/(median(sediment$Size[which(sediment$Stream == "st11U")]))
-hist(pres_allhr$st11U_ins);median(pres_allhr$st11U_ins,na.rm = T)
+#hist(pres_allhr$st11U_ins);median(pres_allhr$st11U_ins,na.rm = T)
 
 pres_allhr$st13_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st13")])))/(0.7*pres_allhr$st13_vel)
 #hist(pres_allhr$st13_RBS)
@@ -107,7 +107,7 @@ pres_allhr$st13_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == 
 #mean(pres_allhr$st13_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st13_ins = pres_allhr$st13_tforce/(median(sediment$Size[which(sediment$Stream == "st13")]))
-hist(pres_allhr$st13_ins);median(pres_allhr$st13_ins,na.rm = T)
+#hist(pres_allhr$st13_ins);median(pres_allhr$st13_ins,na.rm = T)
 
 pres_allhr$st14_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st14")])))/(0.7*pres_allhr$st14_vel)
 #hist(pres_allhr$st14_RBS)
@@ -116,7 +116,7 @@ pres_allhr$st14_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == 
 #mean(pres_allhr$st14_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st14_ins = pres_allhr$st14_tforce/(median(sediment$Size[which(sediment$Stream == "st14")]))
-hist(pres_allhr$st14_ins);median(pres_allhr$st14_ins,na.rm = T)
+#hist(pres_allhr$st14_ins);median(pres_allhr$st14_ins,na.rm = T)
 
 pres_allhr$st17_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == "st17")])))/(0.7*pres_allhr$st17_vel)
 #hist(pres_allhr$st17_RBS)
@@ -125,7 +125,7 @@ pres_allhr$st17_RBS = (0.155*sqrt(median(sediment$Size[which(sediment$Stream == 
 #mean(pres_allhr$st17_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$st17_ins = pres_allhr$st17_tforce/(median(sediment$Size[which(sediment$Stream == "st17")]))
-hist(pres_allhr$st17_ins);median(pres_allhr$st17_ins,na.rm = T)
+#hist(pres_allhr$st17_ins);median(pres_allhr$st17_ins,na.rm = T)
 
 pres_allhr$Hver_RBS = (0.155*sqrt(11.6))/(0.7*pres_allhr$Hver_vel)
 #hist(pres_allhr$Hver_RBS)
@@ -134,7 +134,7 @@ pres_allhr$Hver_RBS = (0.155*sqrt(11.6))/(0.7*pres_allhr$Hver_vel)
 #mean(pres_allhr$Hver_RBS, na.rm = T)
 ##calculate instability with tractive forces/sediment(mm)
 pres_allhr$Hver_ins = pres_allhr$Hver_tforce/11.6
-hist(pres_allhr$Hver_ins);mean(pres_allhr$Hver_ins,na.rm = T)
+#hist(pres_allhr$Hver_ins);mean(pres_allhr$Hver_ins,na.rm = T)
 
 ####  
 Q_allhr = data.frame(Pd = pres_allhr$Pd, pres_allhr[str_detect(names(pres_allhr), "_Q")])
@@ -155,4 +155,4 @@ write.csv(RBS_allhr, file = "./stream-data/RBS_allhr.csv", row.names = F)
 write.csv(vel_allhr, file = "./stream-data/vel_allhr.csv", row.names = F)
 ###
 
-rm(list = ls()[!ls() %in% c("st_temps","Q_allhr","depth_allhr","RBS_allhr","sediment","tforce_allhr","temp_allhr", "ins_allhr", "vel_allhr")])
+rm(list = ls()[!ls() %in% c("st_temps","Q_allhr","depth_allhr","RBS_allhr","sediment","tforce_allhr","temp_allhr", "ins_allhr", "vel_allhr","pres_allhr")])

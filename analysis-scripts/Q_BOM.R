@@ -3,14 +3,17 @@ library(tictoc)
 tic()
 source("./analysis-scripts/Qsubstrate.R")
 toc()#about 3 mins
-####  Isolate all Q between 2011-July-31 and 2012-Aug-15 ####
-Q_BOM <- subset(Q_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
-temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'));temp_BOM[,c(5:6)] = NULL
-tforce_BOM = subset(tforce_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
-RBS_BOM = subset(RBS_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
-depthe_BOM = subset(depth_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
-ins_BOM = subset(ins_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
-vel_BOM = subset(vel_allhr, Pd >= as.POSIXct('2011-07-31') & Pd <= as.POSIXct('2012-08-15'))
+source("./analysis-scripts/Q-plots.R")
+
+####  Isolate all Q between 2011-Aug-14 and 2012-Aug-15 ####
+Q_BOM <- subset(Q_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
+temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'));temp_BOM[,c(5:6)] = NULL
+tforce_BOM = subset(tforce_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
+RBS_BOM = subset(RBS_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
+depthe_BOM = subset(depth_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
+ins_BOM = subset(ins_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
+vel_BOM = subset(vel_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
+
 dfs = list(Q_BOM, temp_BOM, tforce_BOM, RBS_BOM, depthe_BOM, ins_BOM, vel_BOM)
 
 dfs = lapply(dfs, setNames, nm = c("Pd","st1", "st5", "st6", "st8", "st9","st11L", "st11U",
@@ -34,6 +37,7 @@ ins_BOM.l = data.frame(dfs_l[6])
 colnames(ins_BOM.l) = c("Pd", "Stream", "instability")
 vel_BOM.l = data.frame(dfs_l[7])
 colnames(vel_BOM.l) = c("Pd", "Stream", "velocity")
+Qcrit_BOM$Stream = factor(Qcrit_BOM$Stream, levels = levels(Q_BOM.l$Stream))
 st_temps$Stream = factor(st_temps$Stream, levels = levels(Q_BOM.l$Stream))
 rm("dfs","dfs_l");gc()
 
@@ -51,11 +55,17 @@ temp_BOM.sum = temp_BOM.l %>%
 
 tforce_BOM.sum = tforce_BOM.l %>%
   group_by(Stream) %>%
-  summarize(median_tforce = median(tforce, na.rm = T))
+  summarize(median_tforce = mean(tforce, na.rm = T))
 
-RBS_BOM.sum = RBS_BOM.l %>%
+RBS_BOM.sum= Q_BOM.l %>%
+  left_join(RBS_BOM.l) %>%
+  left_join(Qcrit_BOM) %>%
   group_by(Stream) %>%
-  summarize(RBS = mean(RBS, na.rm = T))
+  summarize_at(vars(RBS), funs(RBS = RBS[which.min(abs(as.numeric(Q) - unique(Qcrit)))]))
+  
+#RBS_BOM.sum = RBS_BOM.l %>%
+#  group_by(Stream) %>%
+#  summarize(RBS = median(RBS, na.rm = T))
 
 sed_BOM.sum = sediment %>%
   group_by(Stream) %>%
@@ -65,20 +75,39 @@ depth_BOM.sum = depthe_BOM.l %>%
   group_by(Stream) %>%
   summarize(depth = mean(depth, na.rm = T))
 
-#sed_add = data.frame(Stream = c("st8", "hver"), substrate = c(33.8,11.6))
-#sed_BOM.sum = rbind(sed_BOM.sum,sed_add)
-
-ins_BOM.sum = ins_BOM.l %>%
+ins_BOM.sum = Q_BOM.l %>%
+  left_join(ins_BOM.l) %>%
+  left_join(Qcrit_BOM) %>%
   group_by(Stream) %>%
-  summarize(instability = median(instability, na.rm = T))
+  summarize_at(vars(instability), funs(instability = instability[which.min(abs(as.numeric(Q) - unique(Qcrit)))]))
+
+#ins_BOM.sum = ins_BOM.l %>%
+#  group_by(Stream) %>%
+#  summarize(instability = median(instability, na.rm = T))
 
 vel_BOM.sum = vel_BOM.l %>%
   group_by(Stream) %>%
-  summarize(velocity = median(velocity, na.rm = T))
+  summarize(velocity = mean(velocity, na.rm = T))
+
+#debugonce(f)
+
+tcrit_BOM.sum = Q_BOM.l %>%
+  left_join(tforce_BOM.l) %>%
+  left_join(Qcrit_BOM) %>%
+  group_by(Stream) %>%
+  summarize_at(vars(tforce), funs(tforce_bf = tforce[which.min(abs(as.numeric(Q) - unique(Qcrit)))])) %>%
+  left_join(sediment) %>%
+  group_by(Stream) %>%
+  summarize(est_movement = length(which(Size >= unique(tforce_bf)))/length(Size))
+  
+
+#Q1 = Q_BOM.l[which(Q_BOM.l$Stream == "st1"),]  
+#Q1 %>% left_join(tforce_BOM.l) %>% left_join(Qcrit_BOM) %>% filter(Q > 310)
+
 
 st_temps_pt1 = Reduce(function(...) merge(..., all = T), list(Q_BOM.sum, temp_BOM.sum, 
                                                 tforce_BOM.sum, RBS_BOM.sum, sed_BOM.sum,
-                                                depth_BOM.sum, ins_BOM.sum, vel_BOM.sum))
+                                                depth_BOM.sum, ins_BOM.sum, vel_BOM.sum, tcrit_BOM.sum))
 
 st_temps_pt2 = st_temps[which(st_temps$Date == "Jul"),c(1,4,12:13,17:18)]
 

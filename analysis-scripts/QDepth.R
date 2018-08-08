@@ -295,18 +295,17 @@ hvertt.lm <- lm(log(travel_time_secs)~log(Q.mod/1000), data = hverQ);summary(hve
 
 ###take a look at the depths and discharge measures
 
-st1d.plot <- ggplot(st1, aes(x = Q.mod, y = m_depth)) + geom_point();st1d.plot
+st1d.plot <- ggplot(st1, aes(x = Q.mod, y = m_depth)) + geom_point();st1d.plot;summary(lm(log(m_depth)~log(Q.mod), data = st1))
 st5d.plot <- ggplot(st5, aes(x = Q.mod, y = m_depth)) + geom_point();st5d.plot
 st6d.plot <- ggplot(st6, aes(x = Q.mod, y = m_depth)) + geom_point();st6d.plot
 st8d.plot <- ggplot(st8, aes(x = Q.mod, y = m_depth)) + geom_point();st8d.plot
 st9d.plot <- ggplot(st9, aes(x = Q.mod, y = m_depth)) + geom_point();st9d.plot
 st11Ld.plot <- ggplot(st11L, aes(x = Q.mod, y = m_depth)) + geom_point();st11Ld.plot
 st13d.plot <- ggplot(st13, aes(x = Q.mod, y = m_depth)) + geom_point();st13d.plot
-st14d.plot <- ggplot(st14, aes(x = Q.mod, y = m_depth)) + geom_point();st14d.plot
+st14d.plot <- ggplot(st14, aes(x = log(Q.mod), y = log(m_depth))) + geom_point();st14d.plot
 st17d.plot <- ggplot(st17, aes(x = Q.mod, y = m_depth)) + geom_point();st17d.plot
 hverd.plot <- ggplot(hver, aes(x = Q.mod, y = m_depth)) + geom_point();hverd.plot
 ##These all suck!!! Not much data.
-
 
 #Now take the estimated Widths and estimated travel times and add to discharge object: Q_all
 ##relisting all the regressions used for tt and widths
@@ -429,11 +428,19 @@ pres_allhr <- transform(pres_allhr, Hver_length = mean(hver$lg_m, na.rm = T))
 
 ### modeling depth with discharge, travel time, width, and length 
 #units = Depth(m) = (m3/s * s/1)/((cm/100) * m)
-pres_allhr$st1_depthe = ((pres_allhr$st1_Q/1000)*pres_allhr$st1_tt.s)/((pres_allhr$st1_width/100)*pres_allhr$st1_length)
+d_rating1 = lm(log(m_depth/100)~log(Q.mod), data = st1);colnames(pres_allhr)[30]= "Q.mod"
+pres_allhr$st1_depthe = exp(predict(d_rating1, pres_allhr));colnames(pres_allhr)[30] = "st1_Q"
+#pres_allhr$st1_depthe2 = ((pres_allhr$st1_Q/1000)*pres_allhr$st1_tt.s)/((pres_allhr$st1_width/100)*pres_allhr$st1_length)
+#d_rating5 = lm(log(m_depth/100)~log(Q.mod), data = st5);colnames(pres_allhr)[31]="Q.mod"
+#pres_allhr$st5_depthe = exp(predict(d_rating5, pres_allhr));colnames(pres_allhr)[31] = "st5_Q"
 pres_allhr$st5_depthe = ((pres_allhr$st5_Q/1000)*pres_allhr$st5_tt.s)/((pres_allhr$st5_width/100)*pres_allhr$st5_length)
-pres_allhr$st6_depthe = ((pres_allhr$st6_Q/1000)*pres_allhr$st6_tt.s)/((pres_allhr$st6_width/100)*pres_allhr$st6_length)
+d_rating6 = lm(log(m_depth/100)~log(Q.mod), data = st6);colnames(pres_allhr)[32]="Q.mod"
+pres_allhr$st6_depthe = exp(predict(d_rating6, pres_allhr));colnames(pres_allhr)[32] = "st6_Q"
+#pres_allhr$st6_depthe = ((pres_allhr$st6_Q/1000)*pres_allhr$st6_tt.s)/((pres_allhr$st6_width/100)*pres_allhr$st6_length)
 pres_allhr$st8_depthe = ((pres_allhr$st8_Q/1000)*pres_allhr$st8_tt.s)/((pres_allhr$st8_width/100)*pres_allhr$st8_length)
-pres_allhr$st9_depthe = ((pres_allhr$st9_Q/1000)*pres_allhr$st9_tt.s)/((pres_allhr$st9_width/100)*pres_allhr$st9_length)
+d_rating9 = lm(log(m_depth/100)~log(Q.mod), data = st9);colnames(pres_allhr)[34]="Q.mod"
+pres_allhr$st9_depthe = exp(predict(d_rating9, pres_allhr));colnames(pres_allhr)[34] = "st9_Q"
+#pres_allhr$st9_depthe = ((pres_allhr$st9_Q/1000)*pres_allhr$st9_tt.s)/((pres_allhr$st9_width/100)*pres_allhr$st9_length)
 pres_allhr$st11L_depthe = ((pres_allhr$st11L_Q/1000)*pres_allhr$st11L_tt.s)/((pres_allhr$st11L_width/100)*pres_allhr$st11L_length)
 pres_allhr$st11U_depthe = ((pres_allhr$st11U_Q/1000)*pres_allhr$st11U_tt.s)/((pres_allhr$st11U_width/100)*pres_allhr$st11U_length)
 pres_allhr$st13_depthe = ((pres_allhr$st13_Q/1000)*pres_allhr$st13_tt.s)/((pres_allhr$st13_width/100)*pres_allhr$st13_length)
@@ -483,6 +490,7 @@ ggplot(pres_allhr, aes(x = st11U_Q/1000, y = st11U_depthe*100)) + geom_point(siz
 hist(pres_allhr$st11U_Q)
 length(which(pres_allhr$st11U_Q >=100))
 mean(pres_allhr$st11U_Q, na.rm = T)
+
 ggplot(pres_allhr, aes( x = st13_depthe*100)) + 
   geom_histogram(aes(y = ..density..), fill = "blue") +
   geom_histogram(data = st13, aes(x = m_depth, y = ..density..), fill = "red")

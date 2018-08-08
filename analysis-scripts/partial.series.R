@@ -10,13 +10,13 @@ partial.series <- function(flow.ts, ari = 2, ind.days = 7, duration = T, plot = 
     record.year <- strftime(flow.ts[["Pd"]], format = "%Y")
     flow.ts <- data.frame(flow.ts, hydro.year = record.year)
     flow.ts.comp <- na.omit(flow.ts)
-    n.days <- tapply(flow.ts.comp[[2]], flow.ts.comp[["hydro.year"]], length)
-    n.most.days <- which(n.days >= 350)
-    flow.ts.comp <- flow.ts.comp[which(flow.ts.comp[["hydro.year"]] %in% names(n.most.days)), ]
+    n.hours <- tapply(flow.ts.comp[[2]], flow.ts.comp[["hydro.year"]], length)
+    n.most.hours <- which(n.hours >= 1000)
+    flow.ts.comp <- flow.ts.comp[which(flow.ts.comp[["hydro.year"]] %in% names(n.most.hours)), ]
     flow.ts.comp[["hydro.year"]] <- factor(flow.ts.comp[["hydro.year"]])
     record.year <- flow.ts.comp[["hydro.year"]]
     
-    n.years <- length(n.most.days)
+    n.years <- length(n.most.hours)
     
     
     if (ari > n.years) {
@@ -55,7 +55,7 @@ partial.series <- function(flow.ts, ari = 2, ind.days = 7, duration = T, plot = 
             NA
     }
     p.series <- do.call("rbind", p.series)
-    browser()
+    #browser()
     
     p.series$event.rank <- seq(1:nrow(p.series))
     

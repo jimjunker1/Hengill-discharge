@@ -5,6 +5,8 @@ source("./analysis-scripts/Qsubstrate.R")
 toc()#about 3 mins
 source("./analysis-scripts/Q-plots.R")
 
+overKT = function(a){(1/(8.62e-5*(15+273.15)) - (1/(8.62e-5*(a+273.15))))}
+
 ####  Isolate all Q between 2011-Aug-14 and 2012-Aug-15 ####
 Q_BOM <- subset(Q_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'))
 temp_BOM = subset(temp_allhr, Pd >= as.POSIXct('2011-08-14') & Pd <= as.POSIXct('2012-08-15'));temp_BOM[,c(5:6)] = NULL
@@ -51,7 +53,8 @@ st13_cv.fix = which(Q_BOM.sum$Stream == "st13");Q_BOM.sum[st13_cv.fix, "CV"] = (
 
 temp_BOM.sum = temp_BOM.l %>%
   group_by(Stream) %>%
-  summarize(mean_temp = mean(temp, na.rm = T))
+  mutate(kt = overkT(temp)) %>%
+  summarize(mean_temp = mean(temp, na.rm = T), kt = mean(kt, na.rm = T))
 
 tforce_BOM.sum = tforce_BOM.l %>%
   group_by(Stream) %>%

@@ -53,7 +53,7 @@ st13_cv.fix = which(Q_BOM.sum$Stream == "st13");Q_BOM.sum[st13_cv.fix, "CV"] = (
 
 temp_BOM.sum = temp_BOM.l %>%
   group_by(Stream) %>%
-  mutate(kt = overkT(temp)) %>%
+  mutate(kt = overKT(temp)) %>%
   summarize(mean_temp = mean(temp, na.rm = T), mean_kt = mean(kt, na.rm = T))
 
 tforce_BOM.sum = tforce_BOM.l %>%

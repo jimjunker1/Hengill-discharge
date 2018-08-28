@@ -43,36 +43,36 @@ ecdf.plot <- function(DATA)
 source("./analysis-scripts/partial.series.R")
 #debugonce(partial.series)
 Q1 = pres_allhr[,c("Pd","st1_Q")]
-Q1ps = partial.series(flow.ts = Q1, ari = 1, plot = F);Q1ps
+Q1ps = partial.series(flow.ts = Q1, ari = 1.5, plot = F);Q1ps
 Q1 %>% filter(st1_Q >= Q1ps[[4]])
 
 Q5 = pres_allhr[,c("Pd","st5_Q")]
-Q5ps = partial.series(flow.ts = Q5, ari = 1, plot = F);Q5ps
+Q5ps = partial.series(flow.ts = Q5, ari = 1.5, plot = F);Q5ps
 Q5 %>% filter(st5_Q > Q5ps[[4]])
 
 Q6 = pres_allhr[,c("Pd","st6_Q")]
-Q6ps = partial.series(flow.ts = Q6, ari = 1, plot = F);Q6ps
+Q6ps = partial.series(flow.ts = Q6, ari = 1.5, plot = F);Q6ps
 
 Q8 = pres_allhr[,c("Pd","st8_Q")]
-Q8ps = partial.series(flow.ts = Q8, ari = 1, plot = F);Q8ps
+Q8ps = partial.series(flow.ts = Q8, ari = 1.5, plot = F);Q8ps
 
 Q9 = pres_allhr[,c("Pd","st9_Q")]
-Q9ps = partial.series(flow.ts = Q9, ari = 1, plot = F);Q9ps
+Q9ps = partial.series(flow.ts = Q9, ari = 1.5, plot = F);Q9ps
 
 Q11L = pres_allhr[,c("Pd","st11L_Q")]
-Q11Lps = partial.series(flow.ts = Q11L, ari = 1, plot = F);Q11Lps
+Q11Lps = partial.series(flow.ts = Q11L, ari = 1.5, plot = F);Q11Lps
 
 Q11U = pres_allhr[,c("Pd","st11U_Q")]
-Q11Ups = partial.series(flow.ts = Q11U, ari = 1, plot = F);Q11Ups
+Q11Ups = partial.series(flow.ts = Q11U, ari = 1.5, plot = F);Q11Ups
 
 Q14 = pres_allhr[,c("Pd","st14_Q")]
-Q14ps = partial.series(flow.ts = Q14, ari = 1, plot = F);Q14ps
+Q14ps = partial.series(flow.ts = Q14, ari = 1.5, plot = F);Q14ps
 
 Q17 = pres_allhr[,c("Pd","st17_Q")]
-Q17ps = partial.series(flow.ts = Q17, ari = 1, plot = F);Q17ps
+Q17ps = partial.series(flow.ts = Q17, ari = 1.5, plot = F);Q17ps
 
 Qhver = pres_allhr[,c("Pd","Hver_Q")]
-Qhverps = partial.series(flow.ts = Qhver, ari = 1, plot = F);Qhverps
+Qhverps = partial.series(flow.ts = Qhver, ari = 1.5, plot = F);Qhverps
 
 streams = c('st1','st5','st6','st8','st9','st11L','st11U','st13','st14','st17','hver')
 Qcrit = c(Q1ps[[4]],Q5ps[[4]],Q6ps[[4]],Q8ps[[4]],Q9ps[[4]],Q11Lps[[4]],Q11Ups[[4]],14.6,Q14ps[[4]],

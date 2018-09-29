@@ -120,6 +120,9 @@ st_temps.j = merge(st_temps_pt1, st_temps_pt2, by = "Stream")
 
 ########  
 write.csv(st_temps.j, file = "C:/Users/Jim/Documents/Projects/Manuscripts/Iceland/EcosystemStoic/ch1_BOM/stream_temps.csv", row.names = F)
+
+#code for Windows 10 file structure "C:/Users/Junker/Documents/Projects/ch1_BOM"
+
 ################## Old Code ##################
 
 #Q_BOM.l <- merge(Q_BOM.l, st_temps.feb, by = c("Stream"))

@@ -468,8 +468,9 @@ pres_allhr$st17_Q = exp(predict(sm_rating17, pres_allhr))
 
 ggplot(pres_allhr, aes(x = Pd, y = st17_Q)) + geom_point(size = 3)
 
-st17.fix = which(pres_allhr$st17_Q >= 30000)
+st17.fix = which(pres_allhr$st17_Q >= 15000)
 pres_allhr[st17.fix, "st17_Q"] = NA
+#mean(pres_allhr$st17_Q, na.rm = T)
 #HVER
 
 QHver <- Q[which(Q$Qstream == "hver"),]

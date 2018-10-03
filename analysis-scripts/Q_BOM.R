@@ -48,7 +48,8 @@ Q_BOM.sum <- Q_BOM.l %>%
   group_by(Stream) %>%
   mutate(power = 9800*(Q/1000)*(Slope/100)) %>%
 	summarize(median_Q = median(Q, na.rm = T), max.power = max(power, na.rm = T),
-	          max_Q = max(Q, na.rm = T), CV = (sd(Q,na.rm = T)/mean(Q,na.rm = T)))
+	          max_Q = max(Q, na.rm = T), CV = (sd(Q,na.rm = T)/mean(Q,na.rm = T)),
+	          QD = (quantile(Q, probs = 0.75)-quantile(Q,probs = 0.25))/(quantile(Q, probs = 0.75)+quantile(Q, probs = 0.25)))
 st13_cv.fix = which(Q_BOM.sum$Stream == "st13");Q_BOM.sum[st13_cv.fix, "CV"] = (1.6/14.6)
 
 temp_BOM.sum = temp_BOM.l %>%
@@ -119,9 +120,11 @@ st_temps_pt2 = st_temps[which(st_temps$Date == "Jul"),c(1,4,12:13,17:18)]
 st_temps.j = merge(st_temps_pt1, st_temps_pt2, by = "Stream")
 
 ########  
-write.csv(st_temps.j, file = "C:/Users/Jim/Documents/Projects/Manuscripts/Iceland/EcosystemStoic/ch1_BOM/stream_temps.csv", row.names = F)
+#code for office computer
+#write.csv(st_temps.j, file = "C:/Users/Jim/Documents/Projects/Manuscripts/Iceland/EcosystemStoic/ch1_BOM/stream_temps.csv", row.names = F)
 
-#code for Windows 10 file structure "C:/Users/Junker/Documents/Projects/ch1_BOM"
+#code for Windows 10 file structure 
+write.csv(st_temps.j, file = "C:/Users/Junker/Documents/Projects/ch1_BOM/stream_temps.csv", row.names = F)
 
 ################## Old Code ##################
 

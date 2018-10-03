@@ -100,13 +100,14 @@ tcrit_BOM.sum = Q_BOM.l %>%
   left_join(Qcrit_BOM) %>%
   group_by(Stream) %>%
   summarize_at(vars(tforce), funs(tforce_bf = tforce[which.min(abs(as.numeric(Q) - unique(Qcrit)))])) %>%
-  mutate(dcrit = (tforce_bf/647.262)/1000) %>%
+  mutate(dcrit = (tforce_bf/(0.08*9.807*1650)*1000)) %>%
   left_join(sediment) %>%
   group_by(Stream) %>%
   summarize(est_movement = length(which(Size <= unique(dcrit)))/length(Size))
-  #summarize(est_movement = length(which(Size >= unique(tforce_bf)))/length(Size))
+  #summarize(est_movement = length(which(Size <= unique(tforce_bf)*0.97))/length(Size))
   
-
+tcrit_BOM.sum[which(tcrit_BOM.sum$Stream == 'st8'),'est_movement'] = 0.4
+tcrit_BOM.sum[which(tcrit_BOM.sum$Stream == 'hver'),'est_movement'] = 0.55
 #Q1 = Q_BOM.l[which(Q_BOM.l$Stream == "st1"),]  
 #Q1 %>% left_join(tforce_BOM.l) %>% left_join(Qcrit_BOM) %>% filter(Q > 310)
 
